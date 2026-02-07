@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Harakat #{{ movement.id }} - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Harakat #{{ movement.id }}</h1>
+    <a href="{% url 'movement_list' %}" class="btn btn-secondary">← Orqaga</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3>Asosiy ma'lumotlar</h3>
+        <dl class="detail-list">
+            <dt>Turi</dt>
+            <dd>
+                <span
+                    class="badge {% if movement.movement_type == 'IN' %}badge-success{% else %}badge-warning{% endif %}">
+                    {{ movement.get_movement_type_display }}
+                </span>
+            </dd>
+
+            <dt>Holat</dt>
+            <dd>
+                <span class="badge badge-{{ movement.status|lower }}">
+                    {{ movement.get_status_display }}
+                </span>
+            </dd>
+
+            <dt>Yaratilgan</dt>
+            <dd>{{ movement.created_at|date:"d.m.Y H:i:s" }}</dd>
+
+            <dt>Bajaruvchi</dt>
+            <dd>{{ movement.performed_by.username }} ({{ movement.performed_by.get_role_display }})</dd>
+
+            <dt>Izoh</dt>
+            <dd>{{ movement.note|default:"-" }}</dd>
+        </dl>
+    </div>
+
+    <div class="detail-card">
+        <h3>Face ID</h3>
+        <dl class="detail-list">
+            <dt>Tasdiqlandi</dt>
+            <dd>{% if movement.face_verified %}✅ Ha{% else %}❌ Yo'q{% endif %}</dd>
+
+            {% if movement.face_verified %}
+            <dt>Xodim</dt>
+            <dd>{{ movement.face_employee.name }} ({{ movement.face_employee.employee_id }})</dd>
+
+            <dt>Ishonch darajasi</dt>
+            <dd>{{ movement.face_confidence|floatformat:2 }}</dd>
+
+            <dt>Tasdiqlash vaqti</dt>
+            <dd>{{ movement.face_verified_at|date:"d.m.Y H:i:s" }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+{% if movement.reversed_movement %}
+<div class="alert alert-info">
+    ℹ️ Bu harakat #{{ movement.reversed_movement.id }} harakatini bekor qilish uchun yaratilgan.
+</div>
+{% endif %}
+
+<div class="items-card">
+    <h3>Mahsulotlar ({{ movement.total_items }} ta)</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mahsulot</th>
+                <th>SKU</th>
+                <th>Miqdor</th>
+                <th>Birlik narxi</th>
+                <th>Jami</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in movement.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td><code>{{ item.product.sku }}</code></td>
+                <td>{{ item.quantity }} {{ item.product.unit }}</td>
+                <td>{{ item.unit_price|floatformat:2 }}</td>
+                <td>{{ item.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if can_reverse %}
+<div class="actions-section">
+    <button type="button" id="reverse-btn" class="btn btn-danger">
+        🔄 Bekor qilish (Reversal)
+    </button>
+</div>
+
+<div id="reverse-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Harakatni bekor qilish</h3>
+        <div class="modal-body">
+            <p class="warning">⚠️ Bu harakat bekor qilinadi va zaxira qaytariladi.</p>
+            <div class="form-group">
+                <label for="reason-input">Sabab</label>
+                <textarea id="reason-input" rows="3" placeholder="Bekor qilish sababini kiriting..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="reverse-cancel" class="btn btn-secondary">Bekor</button>
+            <button type="button" id="reverse-confirm" class="btn btn-danger">Bekor qilish</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('reverse-btn').addEventListener('click', () => {
+        document.getElementById('reverse-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('reverse-cancel').addEventListener('click', () => {
+        document.getElementById('reverse-modal').classList.add('hidden');
+    });
+
+    document.getElementById('reverse-confirm').addEventListener('click', async () => {
+        const reason = document.getElementById('reason-input').value.trim();
+        if (!reason) {
+            alert('Sababni kiriting');
+            return;
+        }
+
+        const resp = await fetch('{% url "reverse_movement" movement.id %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ reason })
+        });
+
+        const data = await resp.json();
+        if (data.ok) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Xato: ' + data.error);
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

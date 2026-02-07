@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4F81BD;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .type-in {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .type-out {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .items-cell {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📋 {{ title }}</h1>
+        <p>{{ start_date|date:"d.m.Y" }} - {{ end_date|date:"d.m.Y" }} | Yaratilgan: {{ generated_at|date:"d.m.Y H:i" }}
+        </p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Turi</th>
+                <th>Sana</th>
+                <th>Foydalanuvchi</th>
+                <th>Xodim</th>
+                <th>Mahsulotlar</th>
+                <th>Izoh</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movements %}
+            <tr>
+                <td>{{ m.id }}</td>
+                <td class="{% if m.movement_type == 'IN' %}type-in{% else %}type-out{% endif %}">
+                    {{ m.get_movement_type_display }}
+                </td>
+                <td>{{ m.created_at|date:"d.m.Y H:i" }}</td>
+                <td>{{ m.performed_by.username }}</td>
+                <td>{{ m.face_employee.name|default:"-" }}</td>
+                <td class="items-cell">
+                    {% for item in m.items.all %}
+                    {{ item.product.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{{ m.note|default:"-"|truncatewords:10 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center;">Ma'lumot topilmadi</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Jami: {{ movements.count }} ta harakat | Ombor Nazorat Tizimi © 2026
+    </div>
+</body>
+
+</html>

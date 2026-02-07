@@ -1,0 +1,1619 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2026-02-06T12:44:06.370Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "2",
+    "object_repr": "admin_test (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\", \"Email address\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2026-02-06T12:47:19.213Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "anvar (123456789)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2026-02-06T12:49:31.036Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "2",
+    "object_repr": "admin_test (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Superuser status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2026-02-06T13:24:11.757Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "4",
+    "object_repr": "AirPods Pro 2: 10 dona",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Joriy miqdor\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2026-02-06T14:17:40.478Z",
+    "user": 2,
+    "content_type": 9,
+    "object_id": "3",
+    "object_repr": "Kirim #3 - Kutilmoqda",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Face ID xodim\", \"Face tasdiqlandi\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2026-02-06T14:18:34.441Z",
+    "user": 2,
+    "content_type": 9,
+    "object_id": "3",
+    "object_repr": "Kirim #3 - Tasdiqlangan",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Holat\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2026-02-06T14:21:08.158Z",
+    "user": 1,
+    "content_type": 12,
+    "object_id": "1",
+    "object_repr": "iPhone 15 Pro 128GB: 100 dona",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Joriy miqdor\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2026-02-06T14:49:42.720Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "2",
+    "object_repr": "admin_test (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Superuser status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2026-02-06T15:09:04.083Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "1",
+    "object_repr": "shaxobiddin (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Rol\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2026-02-06T15:12:15.840Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "6",
+    "object_repr": "AdminTester (Admin)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2026-02-06T15:17:11.184Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "6",
+    "object_repr": "AdminTester (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\", \"Email address\", \"Last login\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2026-02-06T15:18:19.245Z",
+    "user": 1,
+    "content_type": 6,
+    "object_id": "6",
+    "object_repr": "AdminTester (Admin)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Staff status\", \"Superuser status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2026-02-06T15:23:49.435Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "5",
+    "object_repr": "xodim1 (030303)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 2,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 2,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 2,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 2,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 3,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 3,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 3,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 3,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 4,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 4,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 4,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 4,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 5,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 5,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 5,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 5,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add Foydalanuvchi",
+    "content_type": 6,
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change Foydalanuvchi",
+    "content_type": 6,
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete Foydalanuvchi",
+    "content_type": 6,
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view Foydalanuvchi",
+    "content_type": 6,
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add Kategoriya",
+    "content_type": 7,
+    "codename": "add_category"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change Kategoriya",
+    "content_type": 7,
+    "codename": "change_category"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete Kategoriya",
+    "content_type": 7,
+    "codename": "delete_category"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view Kategoriya",
+    "content_type": 7,
+    "codename": "view_category"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add Xodim",
+    "content_type": 8,
+    "codename": "add_employee"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change Xodim",
+    "content_type": 8,
+    "codename": "change_employee"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete Xodim",
+    "content_type": 8,
+    "codename": "delete_employee"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view Xodim",
+    "content_type": 8,
+    "codename": "view_employee"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add Harakat",
+    "content_type": 9,
+    "codename": "add_movement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change Harakat",
+    "content_type": 9,
+    "codename": "change_movement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete Harakat",
+    "content_type": 9,
+    "codename": "delete_movement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view Harakat",
+    "content_type": 9,
+    "codename": "view_movement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add Mahsulot",
+    "content_type": 10,
+    "codename": "add_product"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change Mahsulot",
+    "content_type": 10,
+    "codename": "change_product"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete Mahsulot",
+    "content_type": 10,
+    "codename": "delete_product"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view Mahsulot",
+    "content_type": 10,
+    "codename": "view_product"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add Harakat elementi",
+    "content_type": 11,
+    "codename": "add_movementitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change Harakat elementi",
+    "content_type": 11,
+    "codename": "change_movementitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete Harakat elementi",
+    "content_type": 11,
+    "codename": "delete_movementitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view Harakat elementi",
+    "content_type": 11,
+    "codename": "view_movementitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 45,
+  "fields": {
+    "name": "Can add Zaxira",
+    "content_type": 12,
+    "codename": "add_stock"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 46,
+  "fields": {
+    "name": "Can change Zaxira",
+    "content_type": 12,
+    "codename": "change_stock"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 47,
+  "fields": {
+    "name": "Can delete Zaxira",
+    "content_type": 12,
+    "codename": "delete_stock"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 48,
+  "fields": {
+    "name": "Can view Zaxira",
+    "content_type": 12,
+    "codename": "view_stock"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 1,
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 2,
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 3,
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 4,
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 5,
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 6,
+  "fields": {
+    "app_label": "accounts",
+    "model": "user"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 7,
+  "fields": {
+    "app_label": "inventory",
+    "model": "category"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 8,
+  "fields": {
+    "app_label": "inventory",
+    "model": "employee"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 9,
+  "fields": {
+    "app_label": "inventory",
+    "model": "movement"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 10,
+  "fields": {
+    "app_label": "inventory",
+    "model": "product"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 11,
+  "fields": {
+    "app_label": "inventory",
+    "model": "movementitem"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 12,
+  "fields": {
+    "app_label": "inventory",
+    "model": "stock"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "j3af6nez5em8wz93etfw1f21pxpe81pf",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlms4y8lPWewNt41DiBbipMKcXcSKQW0b2beW0RclxLXznOcSFwEiNPvNmJ6ct0BPbDem0ytLvM0yl2RB-3y1ohf18P9OyjYy1b7TMYRDY6GM4NlrYKz3qMFqxECsSYPyupNCGgAgmHUQA4xK0iZxecL0Yk3sA:1vobcL:xZMMxY2VPiZ1lNzNbDmfEdjjBYODQd-zs0g1IOfZBrk",
+    "expire_date": "2026-02-08T06:16:29.036Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "jef3nsb01mjz6tvtieun28ynqftvaedm",
+  "fields": {
+    "session_data": ".eJxlkEFPwzAMhf9Lr7DISZo2zZH7brtXbmzTwJagtkNCiP9OhgaCId_8vff07PdmxPM2j-eVlzFRExrb3P_eTRifOV8APWF-LCqWvC1pUheJutJV7Qvx8eGq_RMw4zpXN0sH0npNg6WI3A_SW9cCRCTwkciJDJ30TKKHqbXsXSRvGY0YTRPqGioYeXzlJUliGvn0cixvzF-t3S39ucfeknXDLZVcK2nTK6jzPxu3ig2YbgdmB91Bu2C6oFvlrHfe3gEEgG9XfYgk4hy5CW2vnP_4BAcebl0:1voa2l:aNfFFpnrvV8i8NG_6HdRjituNLaCryjR8aKnN8eUqro",
+    "expire_date": "2026-02-08T04:35:39.903Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "n4smvsyrhzpltytns8ny0qhfnc50tkvr",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlms4y8lPWewNt41DiBbipMKcXcSKQW0b2beW0RclxLXznOcSFwEiNPvNmJ6ct0BPbDem0ytLvM0yl2RB-3y1ohf18P9OyjYy1b7TMYRDY6GM4NlrYKz3qMFqxECsSYPyupNCGgAgmHUQA4xK0iZxecL0Yk3sA:1vobc2:_ZukgBsDI1eHrDUMHub_yp0xhG7S770tx9krzBZ5fQg",
+    "expire_date": "2026-02-08T06:16:10.871Z"
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$ke67nJyrV63tdnuZtK1FQB$mpukWUmHwYJTvPwH5ZMYbqc8i1OGzInQ6IWbFd4Y8rw=",
+    "last_login": "2026-02-07T06:16:28.601Z",
+    "is_superuser": true,
+    "username": "shaxobiddin",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-02-06T12:22:05Z",
+    "role": "admin",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$PjBnp0KcCddZjYyEDPUzs8$pSQivCN7ycm/1phdyViHhVbIUuzyV/fCE+jypv88WCQ=",
+    "last_login": "2026-02-06T13:00:51Z",
+    "is_superuser": false,
+    "username": "admin_test",
+    "first_name": "admin",
+    "last_name": "adminovich",
+    "email": "admin@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-02-06T12:24:01Z",
+    "role": "admin",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$BKHcVcA9reN8VlYvQNomyF$lOfxusA/BPioYn6P+mcwtDLPd09fOz7nZHDCuzYtS2w=",
+    "last_login": "2026-02-06T15:26:00.922Z",
+    "is_superuser": false,
+    "username": "operator1",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-06T12:24:02.010Z",
+    "role": "operator",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$iCAaz7hWJ1JuhTibeprqwd$wZFkB17kw/gIEhLXHKt4/eESmHlGJrHkrbipdICzpDs=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "operator2",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-06T12:24:02.742Z",
+    "role": "operator",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$QChQl1LkgZKUxjJzoEkcTF$8e4vavf5BEz9Y9CZMAJkfuzKCe4vRrGAMQxXFRd6JIo=",
+    "last_login": "2026-02-06T12:56:22.926Z",
+    "is_superuser": false,
+    "username": "viewer1",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-06T12:24:03.504Z",
+    "role": "viewer",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$600000$pk6d3ZOh236NLSGxij4O46$9m1bPoKfJ+pNuudK/8YlXkC33e2O3OqJocYZm0uzv80=",
+    "last_login": "2026-02-01T15:17:06Z",
+    "is_superuser": true,
+    "username": "AdminTester",
+    "first_name": "xxxxx",
+    "last_name": "xxxx",
+    "email": "xxxx@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-02-06T15:12:15Z",
+    "role": "admin",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "inventory.employee",
+  "pk": 1,
+  "fields": {
+    "name": "anvar",
+    "employee_id": "123456789",
+    "photo": "employees/shaxobiddin.jpg",
+    "face_label": 1,
+    "is_active": true,
+    "created_at": "2026-02-06T12:47:19.213Z",
+    "updated_at": "2026-02-06T12:47:19.213Z"
+  }
+},
+{
+  "model": "inventory.employee",
+  "pk": 2,
+  "fields": {
+    "name": "Ali Valiyev",
+    "employee_id": "EMP001",
+    "photo": "",
+    "face_label": 2,
+    "is_active": true,
+    "created_at": "2026-02-06T12:59:43.987Z",
+    "updated_at": "2026-02-06T12:59:43.987Z"
+  }
+},
+{
+  "model": "inventory.employee",
+  "pk": 3,
+  "fields": {
+    "name": "Vali G'aniyev",
+    "employee_id": "EMP002",
+    "photo": "",
+    "face_label": 3,
+    "is_active": true,
+    "created_at": "2026-02-06T12:59:43.991Z",
+    "updated_at": "2026-02-06T12:59:43.991Z"
+  }
+},
+{
+  "model": "inventory.employee",
+  "pk": 4,
+  "fields": {
+    "name": "Salim Karimov",
+    "employee_id": "EMP003",
+    "photo": "",
+    "face_label": 4,
+    "is_active": true,
+    "created_at": "2026-02-06T12:59:43.993Z",
+    "updated_at": "2026-02-06T12:59:43.993Z"
+  }
+},
+{
+  "model": "inventory.employee",
+  "pk": 5,
+  "fields": {
+    "name": "xodim1",
+    "employee_id": "030303",
+    "photo": "employees/shaxobiddin_sdTpda2.jpg",
+    "face_label": 5,
+    "is_active": true,
+    "created_at": "2026-02-06T15:23:49.435Z",
+    "updated_at": "2026-02-06T15:23:49.435Z"
+  }
+},
+{
+  "model": "inventory.category",
+  "pk": 1,
+  "fields": {
+    "name": "Elektronika",
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.317Z"
+  }
+},
+{
+  "model": "inventory.category",
+  "pk": 2,
+  "fields": {
+    "name": "Maishiy texnika",
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.322Z"
+  }
+},
+{
+  "model": "inventory.category",
+  "pk": 3,
+  "fields": {
+    "name": "Oziq-ovqat",
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.326Z"
+  }
+},
+{
+  "model": "inventory.category",
+  "pk": 4,
+  "fields": {
+    "name": "Kiyim-kechak",
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.329Z"
+  }
+},
+{
+  "model": "inventory.category",
+  "pk": 5,
+  "fields": {
+    "name": "Qurilish mollari",
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.331Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 1,
+  "fields": {
+    "uid": "f53e3562-744a-4e39-bc66-8707c34128d8",
+    "name": "iPhone 15 Pro 128GB",
+    "sku": "IPH15-128",
+    "category": 1,
+    "barcode": "195949042456",
+    "unit": "dona",
+    "min_stock": 5,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.334Z",
+    "updated_at": "2026-02-06T12:59:11.334Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 2,
+  "fields": {
+    "uid": "159c725f-7616-45a8-aeee-6eff9e305d8f",
+    "name": "Samsung Galaxy S24 Ultra",
+    "sku": "S24U-256",
+    "category": 1,
+    "barcode": "880609459234",
+    "unit": "dona",
+    "min_stock": 3,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.339Z",
+    "updated_at": "2026-02-06T12:59:11.339Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 3,
+  "fields": {
+    "uid": "0a9de6f7-d96b-40cd-808e-355a5e1cf231",
+    "name": "MacBook Pro 14 M3",
+    "sku": "MBP14-M3",
+    "category": 1,
+    "barcode": "194253456789",
+    "unit": "dona",
+    "min_stock": 2,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.343Z",
+    "updated_at": "2026-02-06T12:59:11.343Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 4,
+  "fields": {
+    "uid": "9e82b5c0-9cad-4ef7-90a8-ea66d2248edb",
+    "name": "AirPods Pro 2",
+    "sku": "AIRPODS2",
+    "category": 1,
+    "barcode": "194252000001",
+    "unit": "dona",
+    "min_stock": 10,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.347Z",
+    "updated_at": "2026-02-06T12:59:11.347Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 5,
+  "fields": {
+    "uid": "092db441-7971-49a2-9d3e-1335c7d4c9bf",
+    "name": "LG Kir yuvish mashinasi 7kg",
+    "sku": "LG-WM-7",
+    "category": 2,
+    "barcode": "880123456789",
+    "unit": "dona",
+    "min_stock": 2,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.352Z",
+    "updated_at": "2026-02-06T12:59:11.352Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 6,
+  "fields": {
+    "uid": "48033fbc-9e7d-44d0-8778-a07026da098e",
+    "name": "Artel Muzlatgich 320L",
+    "sku": "ART-FR-320",
+    "category": 2,
+    "barcode": "478123456789",
+    "unit": "dona",
+    "min_stock": 2,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.355Z",
+    "updated_at": "2026-02-06T12:59:11.355Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 7,
+  "fields": {
+    "uid": "1b791d94-fc7e-4f6b-8cdf-71f760f46fce",
+    "name": "Samsung Changyutgich",
+    "sku": "SAM-VC-2000",
+    "category": 2,
+    "barcode": "880987654321",
+    "unit": "dona",
+    "min_stock": 3,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.359Z",
+    "updated_at": "2026-02-06T12:59:11.359Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 8,
+  "fields": {
+    "uid": "5ff21ac2-1498-4c10-931e-8f8b14c02d14",
+    "name": "Coca-Cola 1.5L",
+    "sku": "COLA-15",
+    "category": 3,
+    "barcode": "5449000000996",
+    "unit": "dona",
+    "min_stock": 50,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.363Z",
+    "updated_at": "2026-02-06T12:59:11.363Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 9,
+  "fields": {
+    "uid": "4eebf93a-e83e-4c58-950b-73d5c457b873",
+    "name": "Nestle Sut 1L",
+    "sku": "NEST-MILK",
+    "category": 3,
+    "barcode": "761303456789",
+    "unit": "litr",
+    "min_stock": 20,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.367Z",
+    "updated_at": "2026-02-06T12:59:11.367Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 10,
+  "fields": {
+    "uid": "62fcbc2f-e35c-4339-9a84-5565d06b33da",
+    "name": "Un 1-nav (50kg)",
+    "sku": "UN-50",
+    "category": 3,
+    "barcode": "478000000001",
+    "unit": "qop",
+    "min_stock": 10,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.370Z",
+    "updated_at": "2026-02-06T12:59:11.370Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 11,
+  "fields": {
+    "uid": "0954b252-ebc6-44f8-8434-c593f171cf90",
+    "name": "Sement M400 (50kg)",
+    "sku": "SEM-400",
+    "category": 5,
+    "barcode": "478000000002",
+    "unit": "qop",
+    "min_stock": 20,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.375Z",
+    "updated_at": "2026-02-06T12:59:11.375Z"
+  }
+},
+{
+  "model": "inventory.product",
+  "pk": 12,
+  "fields": {
+    "uid": "8f765db8-49c7-4dff-938b-29727a54dcd0",
+    "name": "Gipsokarton Knauf",
+    "sku": "GIPS-KN",
+    "category": 5,
+    "barcode": "400637900001",
+    "unit": "list",
+    "min_stock": 50,
+    "description": "",
+    "created_at": "2026-02-06T12:59:11.379Z",
+    "updated_at": "2026-02-06T12:59:11.379Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 4,
+  "fields": {
+    "current_qty": 11,
+    "last_updated": "2026-02-06T15:03:22.240Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 6,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.356Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 8,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T13:02:03.556Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 12,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.380Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 5,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.353Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 3,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T13:02:03.555Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 9,
+  "fields": {
+    "current_qty": 3,
+    "last_updated": "2026-02-06T14:43:35.997Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 7,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.360Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 2,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T13:02:03.554Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 11,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.376Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 10,
+  "fields": {
+    "current_qty": 0,
+    "last_updated": "2026-02-06T12:59:11.372Z"
+  }
+},
+{
+  "model": "inventory.stock",
+  "pk": 1,
+  "fields": {
+    "current_qty": 100,
+    "last_updated": "2026-02-06T14:27:46.684Z"
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 1,
+  "fields": {
+    "movement_type": "IN",
+    "status": "CANCELLED",
+    "performed_by": 2,
+    "face_employee": 2,
+    "face_verified": true,
+    "face_confidence": null,
+    "face_verified_at": "2026-02-06T12:59:43.998Z",
+    "created_at": "2026-02-06T12:59:43.998Z",
+    "updated_at": "2026-02-06T13:02:03.556Z",
+    "note": "Avto test ma'lumotlari",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 2,
+  "fields": {
+    "movement_type": "OUT",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 2,
+    "face_verified": true,
+    "face_confidence": 0.0,
+    "face_verified_at": "2026-02-06T13:02:03.550Z",
+    "created_at": "2026-02-06T13:02:03.550Z",
+    "updated_at": "2026-02-06T13:02:03.550Z",
+    "note": "Bekor qilish sababi: dfvd",
+    "reversed_movement": 1
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 3,
+  "fields": {
+    "movement_type": "IN",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 2,
+    "face_verified": true,
+    "face_confidence": null,
+    "face_verified_at": null,
+    "created_at": "2026-02-06T13:15:10.851Z",
+    "updated_at": "2026-02-06T14:18:34.440Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 4,
+  "fields": {
+    "movement_type": "OUT",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 39.72,
+    "face_verified_at": "2026-02-06T13:25:03.313Z",
+    "created_at": "2026-02-06T13:24:51.080Z",
+    "updated_at": "2026-02-06T13:25:03.315Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 5,
+  "fields": {
+    "movement_type": "IN",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 47.03,
+    "face_verified_at": "2026-02-06T14:19:44.042Z",
+    "created_at": "2026-02-06T14:19:39.209Z",
+    "updated_at": "2026-02-06T14:19:44.044Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 6,
+  "fields": {
+    "movement_type": "IN",
+    "status": "CANCELLED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 45.41,
+    "face_verified_at": "2026-02-06T14:21:43.368Z",
+    "created_at": "2026-02-06T14:21:32.912Z",
+    "updated_at": "2026-02-06T14:27:46.684Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 7,
+  "fields": {
+    "movement_type": "OUT",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 0.0,
+    "face_verified_at": "2026-02-06T14:27:46.682Z",
+    "created_at": "2026-02-06T14:27:46.682Z",
+    "updated_at": "2026-02-06T14:27:46.682Z",
+    "note": "Bekor qilish sababi: bizning maxsulot emas",
+    "reversed_movement": 6
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 8,
+  "fields": {
+    "movement_type": "IN",
+    "status": "CANCELLED",
+    "performed_by": 2,
+    "face_employee": null,
+    "face_verified": false,
+    "face_confidence": null,
+    "face_verified_at": null,
+    "created_at": "2026-02-06T14:31:19.766Z",
+    "updated_at": "2026-02-06T14:31:19.766Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 9,
+  "fields": {
+    "movement_type": "IN",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 62.23,
+    "face_verified_at": "2026-02-06T14:43:35.996Z",
+    "created_at": "2026-02-06T14:43:05.009Z",
+    "updated_at": "2026-02-06T14:43:35.997Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 10,
+  "fields": {
+    "movement_type": "IN",
+    "status": "CANCELLED",
+    "performed_by": 2,
+    "face_employee": null,
+    "face_verified": false,
+    "face_confidence": null,
+    "face_verified_at": null,
+    "created_at": "2026-02-06T14:45:59.636Z",
+    "updated_at": "2026-02-06T14:45:59.636Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 11,
+  "fields": {
+    "movement_type": "IN",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 49.28,
+    "face_verified_at": "2026-02-06T15:02:35.288Z",
+    "created_at": "2026-02-06T14:53:00.981Z",
+    "updated_at": "2026-02-06T15:02:35.290Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movement",
+  "pk": 12,
+  "fields": {
+    "movement_type": "IN",
+    "status": "VERIFIED",
+    "performed_by": 2,
+    "face_employee": 1,
+    "face_verified": true,
+    "face_confidence": 49.27,
+    "face_verified_at": "2026-02-06T15:03:22.239Z",
+    "created_at": "2026-02-06T15:03:03.878Z",
+    "updated_at": "2026-02-06T15:03:22.241Z",
+    "note": "",
+    "reversed_movement": null
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 1,
+  "fields": {
+    "movement": 1,
+    "product": 1,
+    "quantity": 75,
+    "unit_price": "23718.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 2,
+  "fields": {
+    "movement": 1,
+    "product": 2,
+    "quantity": 196,
+    "unit_price": "66773.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 3,
+  "fields": {
+    "movement": 1,
+    "product": 3,
+    "quantity": 150,
+    "unit_price": "9222.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 4,
+  "fields": {
+    "movement": 1,
+    "product": 8,
+    "quantity": 89,
+    "unit_price": "46321.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 5,
+  "fields": {
+    "movement": 2,
+    "product": 1,
+    "quantity": 75,
+    "unit_price": "23718.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 6,
+  "fields": {
+    "movement": 2,
+    "product": 2,
+    "quantity": 196,
+    "unit_price": "66773.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 7,
+  "fields": {
+    "movement": 2,
+    "product": 3,
+    "quantity": 150,
+    "unit_price": "9222.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 8,
+  "fields": {
+    "movement": 2,
+    "product": 8,
+    "quantity": 89,
+    "unit_price": "46321.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 9,
+  "fields": {
+    "movement": 3,
+    "product": 8,
+    "quantity": 50,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 10,
+  "fields": {
+    "movement": 4,
+    "product": 4,
+    "quantity": 3,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 11,
+  "fields": {
+    "movement": 5,
+    "product": 4,
+    "quantity": 1,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 12,
+  "fields": {
+    "movement": 6,
+    "product": 1,
+    "quantity": 9,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 13,
+  "fields": {
+    "movement": 7,
+    "product": 1,
+    "quantity": 9,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 14,
+  "fields": {
+    "movement": 8,
+    "product": 3,
+    "quantity": 2,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 15,
+  "fields": {
+    "movement": 9,
+    "product": 9,
+    "quantity": 3,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 16,
+  "fields": {
+    "movement": 10,
+    "product": 9,
+    "quantity": 1,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 17,
+  "fields": {
+    "movement": 11,
+    "product": 4,
+    "quantity": 1,
+    "unit_price": "0.00"
+  }
+},
+{
+  "model": "inventory.movementitem",
+  "pk": 18,
+  "fields": {
+    "movement": 12,
+    "product": 4,
+    "quantity": 2,
+    "unit_price": "0.00"
+  }
+}
+]

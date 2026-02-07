@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Xodimlar - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Xodimlar</h1>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ism</th>
+                <th>ID</th>
+                <th>Face Label</th>
+                <th>Holat</th>
+                <th>Yaratilgan</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employees %}
+            <tr>
+                <td>{{ employee.name }}</td>
+                <td><code>{{ employee.employee_id }}</code></td>
+                <td>{{ employee.face_label }}</td>
+                <td>
+                    {% if employee.is_active %}
+                    <span class="badge badge-success">Faol</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Nofaol</span>
+                    {% endif %}
+                </td>
+                <td>{{ employee.created_at|date:"d.m.Y" }}</td>
+                <td>
+                    <a href="{% url 'employee_detail' employee.id %}" class="btn btn-sm btn-primary">
+                        Face ID
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Xodim topilmadi</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="info-card">
+    <h3>Face Model holati</h3>
+    {% if face_service.model_exists %}
+    <p class="success">✅ Face model mavjud</p>
+    {% else %}
+    <p class="warning">⚠️ Face model hali yaratilmagan. Xodimlarni ro'yxatga oling.</p>
+    {% endif %}
+</div>
+{% endblock %}

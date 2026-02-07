@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>QR Kodlar - Chop Etish</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+        }
+
+        .print-header {
+            text-align: center;
+            padding: 15px;
+            border-bottom: 2px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .print-header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .print-header p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .qr-print-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .qr-print-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .qr-print-item img {
+            width: 120px;
+            height: 120px;
+        }
+
+        .qr-print-item h3 {
+            font-size: 11px;
+            margin: 8px 0 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .qr-print-item .sku {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .qr-print-item .barcode {
+            font-family: monospace;
+            font-size: 9px;
+            margin-top: 4px;
+        }
+
+        .no-print {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        .no-print button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .no-print button:hover {
+            background: #0056b3;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .qr-print-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print">
+        <button onclick="window.print()">🖨️ Chop Etish</button>
+        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">❌ Yopish</button>
+    </div>
+
+    <div class="print-header">
+        <h1>🏷️ Mahsulot QR Kodlari</h1>
+        <p>Jami: {{ products_with_qr|length }} ta mahsulot</p>
+    </div>
+
+    <div class="qr-print-grid">
+        {% for item in products_with_qr %}
+        <div class="qr-print-item">
+            <img src="{{ item.qr_base64 }}" alt="QR">
+            <h3>{{ item.product.name }}</h3>
+            <p class="sku">SKU: {{ item.product.sku }}</p>
+            <p class="barcode">{{ item.qr_data }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Auto-print when page loads (optional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+
+</html>

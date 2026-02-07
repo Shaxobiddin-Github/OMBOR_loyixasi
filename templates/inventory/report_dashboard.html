@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Hisobotlar - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📊 Hisobotlar</h1>
+    <p class="subtitle">Ombor ma'lumotlarini Excel va PDF formatida yuklab oling</p>
+</div>
+
+<div class="report-grid">
+    <!-- Stock Report Card -->
+    <div class="report-card">
+        <div class="card-header">
+            <span class="card-icon">📦</span>
+            <h2 style="color: #f0ad4e;">Ombor Qoldig'i</h2>
+        </div>
+        <p class="card-description">Hozirgi vaqtdagi barcha mahsulotlar va ularning soni</p>
+        <div class="card-actions">
+            <a href="{% url 'download_stock_report' %}?format=excel" class="btn btn-success">
+                📥 Excel
+            </a>
+            <a href="{% url 'download_stock_report' %}?format=pdf" class="btn btn-danger">
+                📄 PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Low Stock Report Card -->
+    <div class="report-card warning">
+        <div class="card-header">
+            <span class="card-icon">⚠️</span>
+            <h2>Kamomat (Low Stock)</h2>
+        </div>
+        <p class="card-description">Minimum darajadan past qolgan mahsulotlar ro'yxati</p>
+        <div class="card-actions">
+            <a href="{% url 'download_low_stock_report' %}?format=excel" class="btn btn-success">
+                📥 Excel
+            </a>
+            <a href="{% url 'download_low_stock_report' %}?format=pdf" class="btn btn-danger">
+                📄 PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Movement Report Card -->
+    <div class="report-card">
+        <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h2 style="color: #f0ad4e;">Harakatlar Tarixi</h2>
+        </div>
+        <p class="card-description">Kirim/Chiqim harakatlari ma'lum vaqt oralig'ida</p>
+
+        <form class="report-form" id="movement-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_date">Boshlanish</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">Tugash</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="movement_type">Turi</label>
+                <select id="movement_type" name="type">
+                    <option value="ALL">Barchasi</option>
+                    <option value="IN">Kirim</option>
+                    <option value="OUT">Chiqim</option>
+                </select>
+            </div>
+        </form>
+
+        <div class="card-actions">
+            <button type="button" class="btn btn-success" onclick="downloadMovementReport('excel')">
+                📥 Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="downloadMovementReport('pdf')">
+                📄 PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .report-card {
+        background: var(--card-bg, #fff);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .report-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .report-card.warning {
+        border-left: 4px solid #f0ad4e;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .card-icon {
+        font-size: 2rem;
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .card-description {
+        color: var(--text-muted, #666);
+        margin-bottom: 20px;
+    }
+
+    .report-form {
+        background: var(--bg-light, #f8f9fa);
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color, #ddd);
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .card-actions .btn {
+        flex: 1;
+        text-align: center;
+        padding: 12px;
+        font-weight: 600;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #218838, #1aab89);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c82333, #a71d2a);
+    }
+
+    .page-header {
+        margin-bottom: 8px;
+    }
+
+    .page-header h1 {
+        margin-bottom: 4px;
+    }
+
+    .subtitle {
+        color: var(--text-muted, #666);
+        margin: 0;
+    }
+</style>
+
+<script>
+    function downloadMovementReport(format) {
+        const form = document.getElementById('movement-form');
+        const startDate = form.querySelector('#start_date').value;
+        const endDate = form.querySelector('#end_date').value;
+        const type = form.querySelector('#movement_type').value;
+
+        const url = `{% url 'download_movement_report' %}?format=${format}&start_date=${startDate}&end_date=${endDate}&type=${type}`;
+        window.location.href = url;
+    }
+</script>
+{% endblock %}

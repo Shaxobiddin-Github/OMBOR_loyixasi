@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Harakatlar - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Harakatlar tarixi</h1>
+</div>
+
+<div class="filters">
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <select name="type" class="select-input">
+                <option value="">Barcha turlar</option>
+                <option value="IN" {% if selected_type == 'IN' %}selected{% endif %}>Kirim</option>
+                <option value="OUT" {% if selected_type == 'OUT' %}selected{% endif %}>Chiqim</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <select name="status" class="select-input">
+                <option value="">Barcha holatlar</option>
+                <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>Kutilmoqda</option>
+                <option value="VERIFIED" {% if selected_status == 'VERIFIED' %}selected{% endif %}>Tasdiqlangan</option>
+                <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>Bekor qilingan
+                </option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filtrlash</button>
+        <a href="{% url 'movement_list' %}" class="btn btn-secondary">Tozalash</a>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Turi</th>
+                <th>Holat</th>
+                <th>Mahsulotlar</th>
+                <th>Bajaruvchi</th>
+                <th>Face ID</th>
+                <th>Vaqt</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movement in movements %}
+            <tr>
+                <td><a href="{% url 'movement_detail' movement.id %}">{{ movement.id }}</a></td>
+                <td>
+                    <span
+                        class="badge {% if movement.movement_type == 'IN' %}badge-success{% else %}badge-warning{% endif %}">
+                        {{ movement.get_movement_type_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge badge-{{ movement.status|lower }}">
+                        {{ movement.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ movement.total_items }} ta</td>
+                <td>{{ movement.performed_by.username }}</td>
+                <td>
+                    {% if movement.face_verified %}
+                    ✅ {{ movement.face_employee.name|default:"-" }}
+                    {% else %}
+                    ❌
+                    {% endif %}
+                </td>
+                <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'movement_detail' movement.id %}" class="btn btn-sm btn-secondary">
+                        Ko'rish
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">Harakat topilmadi</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if movements.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if movements.has_previous %}
+        <li class="page-item">
+            <a class="page-link"
+                href="?page={{ movements.previous_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Oldingi</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Oldingi</span>
+        </li>
+        {% endif %}
+
+        {% for i in movements.paginator.page_range %}
+        {% if movements.number == i %}
+        <li class="page-item active">
+            <span class="page-link">{{ i }}</span>
+        </li>
+        {% elif i > movements.number|add:'-3' and i < movements.number|add:'3' %} <li class="page-item">
+            <a class="page-link"
+                href="?page={{ i }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">{{
+                i }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if movements.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                    href="?page={{ movements.next_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Keyingi</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Keyingi</span>
+            </li>
+            {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

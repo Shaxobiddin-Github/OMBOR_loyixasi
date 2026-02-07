@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #c0392b;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+
+        .alert-box {
+            background: #fdecea;
+            border: 1px solid #c0392b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .alert-box h2 {
+            margin: 0 0 10px;
+            color: #c0392b;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #c0392b;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .deficit {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>⚠️ {{ title }}</h1>
+        <p>Yaratilgan vaqt: {{ generated_at|date:"d.m.Y H:i" }}</p>
+    </div>
+
+    <div class="alert-box">
+        <h2>Diqqat!</h2>
+        <p>Quyidagi mahsulotlar minimum darajadan past qolgan. Zudlik bilan to'ldirish tavsiya etiladi.</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Mahsulot</th>
+                <th>Kategoriya</th>
+                <th>Hozirgi</th>
+                <th>Minimum</th>
+                <th>Yetishmayotgan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr>
+                <td>{{ stock.product.sku }}</td>
+                <td>{{ stock.product.name }}</td>
+                <td>{{ stock.product.category.name }}</td>
+                <td>{{ stock.current_qty }}</td>
+                <td>{{ stock.product.min_stock }}</td>
+                <td class="deficit">-{{ stock.deficit }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #27ae60;">
+                    ✓ Barcha mahsulotlar yetarli darajada
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Ombor Nazorat Tizimi © 2026
+    </div>
+</body>
+
+</html>

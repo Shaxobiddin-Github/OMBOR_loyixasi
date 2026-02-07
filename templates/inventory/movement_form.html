@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movement_type_display }} - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ movement_type_display }}</h1>
+</div>
+
+<div class="movement-container">
+    <!-- QR Scanner Section -->
+    <div class="scanner-section">
+        <div class="scanner-card">
+            <h3>📱 QR/Shtrix kod</h3>
+
+            {% if pending_movement %}
+            <div class="alert alert-warning" role="alert"
+                style="padding: 15px; border-left: 5px solid #ffc107; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 5px 0;">⚠️ Yakunlanmagan harakat (#{{ pending_movement.id }})</h4>
+                        <p style="margin: 0; font-size: 0.9em;">
+                            Sizda chala qolgan operatsiya bor. Uni quyida davom ettiring yoki o'chirib yangisini
+                            boshlang.
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="javascript:void(0)" onclick="document.getElementById('qr-input').focus(); return false;"
+                        class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px;">
+                        ⬇️ Davom ettirish
+                    </a>
+
+                    <form action="{% url 'discard_pending_movement' %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="movement_type" value="{{ movement_type }}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Rostdan ham barchasini o\'chirib tashlaysizmi?')"
+                            style="display: inline-flex; align-items: center; gap: 5px;">
+                            🗑️ MAJBURIY TOZALASH
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="scanner-controls"
+                style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                <label style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="turbo-mode"> ⚡ <b>Turbo Rejim</b>
+                </label>
+                <div style="height: 20px; width: 1px; background: #dee2e6;"></div>
+                <label style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="sound-mode" checked> 🔊 <b>Ovoz</b>
+                </label>
+            </div>
+
+            <input type="text" id="qr-input" class="qr-input" placeholder="QR skanerlang yoki yozing..." autofocus>
+            <div id="qr-error" class="toast error hidden"></div>
+            <div id="qr-success" class="toast success hidden"></div>
+        </div>
+    </div>
+
+    <!-- Face ID Section -->
+    <div class="face-section">
+        <div class="face-card">
+            <h3>👤 Face ID tasdiqlash</h3>
+            <div id="face-status" class="face-status {% if face_verified %}verified{% endif %}">
+                {% if face_verified %}
+                <span class="status-icon">✅</span>
+                <span>Face tasdiqlangan</span>
+                {% else %}
+                <span class="status-icon">❌</span>
+                <span>Face tasdiqlanmagan</span>
+                {% endif %}
+            </div>
+            <video id="video" width="320" height="240" autoplay></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <button type="button" id="capture-btn" class="btn btn-primary">
+                📸 Tasdiqlash
+            </button>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="items-section">
+        <div class="items-card">
+            <h3>📋 Mahsulotlar ro'yxati</h3>
+            <table class="table" id="items-table">
+                <thead>
+                    <tr>
+                        <th>Mahsulot</th>
+                        <th>SKU</th>
+                        <th>Miqdor</th>
+                        <th>Birlik</th>
+                        <th>Zaxira</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <!-- Items will be added here dynamically -->
+                </tbody>
+            </table>
+            <div id="empty-message" class="empty-state">
+                <p>Mahsulotlar qo'shilmagan</p>
+                <p class="hint">QR skanerlang yoki qidiring</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
+        <button type="button" id="finalize-btn" class="btn btn-success btn-lg" disabled>
+            ✅ Yakunlash
+        </button>
+        <button type="button" id="cancel-btn" class="btn btn-danger">
+            ❌ Bekor qilish
+        </button>
+    </div>
+</div>
+
+<!-- Quantity Modal -->
+<div id="qty-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Miqdorni kiriting</h3>
+        <div class="modal-body">
+            <div id="modal-product-info"></div>
+            <div class="form-group">
+                <label for="qty-input">Miqdor</label>
+                <input type="number" id="qty-input" min="1" value="1" autofocus>
+            </div>
+            <div class="form-group">
+                <label for="price-input">Birlik narxi (ixtiyoriy)</label>
+                <input type="number" id="price-input" min="0" step="0.01" value="0">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="modal-cancel" class="btn btn-secondary">Bekor</button>
+            <button type="button" id="modal-confirm" class="btn btn-primary">Qo'shish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CONFIG = {
+        movementType: '{{ movement_type }}',
+        csrfToken: '{{ csrf_token }}',
+        urls: {
+            createMovement: '{% url "create_movement" %}',
+            addItem: '/movement/{id}/add-item/',
+            removeItem: '/movement/{id}/remove-item/{item_id}/',
+            finalize: '/movement/{id}/finalize/',
+            cancel: '/movement/{id}/cancel/',
+            productByBarcode: '{% url "product_by_barcode" %}',
+            faceVerify: '{% url "face_verify" %}',
+            faceStatus: '{% url "face_status" %}',
+        },
+        pendingMovementId: {% if pending_movement %}{{ pending_movement.id }}{% else %} null{% endif %},
+    pendingItems: [
+        {% if pending_movement %}
+    {% for item in pending_movement.items.all %}
+    {
+        id: {{ item.id }},
+        productId: {{ item.product.id }},
+        name: '{{ item.product.name|escapejs }}',
+            sku: '{{ item.product.sku|escapejs }}',
+                quantity: {{ item.quantity }},
+        unit: '{{ item.product.unit|escapejs }}',
+            stockQty: {{ item.product.stock.current_qty|default:0 }}
+    },
+    {% endfor %}
+    {% endif %}
+    ]
+    };
+</script>
+<script src="/static/js/face_capture.js"></script>
+<script src="/static/js/movement.js"></script>
+{% endblock %}

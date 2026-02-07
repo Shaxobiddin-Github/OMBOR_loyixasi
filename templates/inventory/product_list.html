@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Mahsulotlar - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Mahsulotlar</h1>
+</div>
+
+<div class="filters">
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <input type="text" name="q" value="{{ search }}" placeholder="Qidirish (nomi, SKU, barcode)..."
+                class="search-input">
+        </div>
+        <div class="form-group">
+            <select name="category" class="select-input">
+                <option value="">Barcha kategoriyalar</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Qidirish</button>
+        <a href="{% url 'product_list' %}" class="btn btn-secondary">Tozalash</a>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nomi</th>
+                <th>SKU</th>
+                <th>Barcode</th>
+                <th>Kategoriya</th>
+                <th>Birlik</th>
+                <th>Zaxira</th>
+                <th>Min</th>
+                <th>Holat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr class="{% if product.stock and product.stock.is_low_stock %}low-stock{% endif %}">
+                <td>{{ product.name }}</td>
+                <td><code>{{ product.sku }}</code></td>
+                <td><code>{{ product.barcode }}</code></td>
+                <td>{{ product.category.name }}</td>
+                <td>{{ product.unit }}</td>
+                <td>
+                    {% if product.stock %}
+                    {{ product.stock.current_qty }}
+                    {% else %}
+                    0
+                    {% endif %}
+                </td>
+                <td>{{ product.min_stock }}</td>
+                <td>
+                    {% if product.stock and product.stock.is_low_stock %}
+                    <span class="badge badge-warning">Kam</span>
+                    {% else %}
+                    <span class="badge badge-success">OK</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">Mahsulot topilmadi</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if products.has_other_pages %}
+<div class="pagination">
+    {% if products.has_previous %}
+    <a href="?page={{ products.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+        class="btn btn-secondary">
+        ← Oldingi
+    </a>
+    {% endif %}
+
+    <span class="page-info">
+        Sahifa {{ products.number }} / {{ products.paginator.num_pages }}
+    </span>
+
+    {% if products.has_next %}
+    <a href="?page={{ products.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
+        class="btn btn-secondary">
+        Keyingi →
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

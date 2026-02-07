@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.name }} - Face ID{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ employee.name }}</h1>
+    <a href="{% url 'employee_list' %}" class="btn btn-secondary">← Orqaga</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3>Ma'lumotlar</h3>
+        <dl class="detail-list">
+            <dt>Ism</dt>
+            <dd>{{ employee.name }}</dd>
+
+            <dt>ID</dt>
+            <dd><code>{{ employee.employee_id }}</code></dd>
+
+            <dt>Face Label</dt>
+            <dd>{{ employee.face_label }}</dd>
+
+            <dt>Holat</dt>
+            <dd>{% if employee.is_active %}Faol{% else %}Nofaol{% endif %}</dd>
+        </dl>
+    </div>
+
+    <div class="face-registration-card">
+        <h3>Face ID ro'yxatga olish</h3>
+        <div class="face-capture">
+            <video id="video" width="320" height="240" autoplay></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+
+            <div class="capture-controls">
+                <div id="capture-count">Olingan: <span id="count">0</span>/30</div>
+                <button type="button" id="capture-btn" class="btn btn-primary">
+                    📸 Suratga olish
+                </button>
+                <button type="button" id="auto-capture-btn" class="btn btn-secondary">
+                    🔄 Avtomatik (10 ta)
+                </button>
+            </div>
+
+            <div id="captured-preview" class="captured-preview"></div>
+
+            <button type="button" id="register-btn" class="btn btn-success btn-lg" disabled>
+                ✅ Ro'yxatga olish
+            </button>
+
+            <div id="register-status" class="status-message"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const employeeId = {{ employee.id }};
+    const faceLabel = {{ employee.face_label }};
+    const csrfToken = '{{ csrf_token }}';
+    const registerUrl = '{% url "face_register" employee.id %}';
+
+    let video, canvas, ctx;
+    let capturedImages = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        video = document.getElementById('video');
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+
+        // Start webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error('Kamera xatosi:', err);
+                document.getElementById('register-status').innerHTML =
+                    '<p class="error">Kamerani ochib bo\'lmadi</p>';
+            });
+
+        // Manual capture
+        document.getElementById('capture-btn').addEventListener('click', captureFrame);
+
+        // Auto capture
+        document.getElementById('auto-capture-btn').addEventListener('click', autoCapture);
+
+        // Register
+        document.getElementById('register-btn').addEventListener('click', registerFace);
+    });
+
+    function captureFrame() {
+        if (capturedImages.length >= 30) {
+            alert('Maksimal 30 ta rasm');
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        capturedImages.push(dataUrl);
+
+        updateUI();
+    }
+
+    async function autoCapture() {
+        for (let i = 0; i < 10; i++) {
+            captureFrame();
+            await new Promise(r => setTimeout(r, 300));
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('count').textContent = capturedImages.length;
+
+        const preview = document.getElementById('captured-preview');
+        preview.innerHTML = capturedImages.slice(-5).map(img =>
+            `<img src="${img}" width="60" height="45">`
+        ).join('');
+
+        document.getElementById('register-btn').disabled = capturedImages.length < 10;
+    }
+
+    async function registerFace() {
+        const statusEl = document.getElementById('register-status');
+        statusEl.innerHTML = '<p>Yuklanmoqda...</p>';
+
+        try {
+            const resp = await fetch(registerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ images: capturedImages })
+            });
+
+            const data = await resp.json();
+
+            if (data.ok) {
+                statusEl.innerHTML = `<p class="success">✅ ${data.message}</p>`;
+                capturedImages = [];
+                updateUI();
+            } else {
+                statusEl.innerHTML = `<p class="error">❌ ${data.error || data.message}</p>`;
+            }
+        } catch (err) {
+            statusEl.innerHTML = `<p class="error">Xato: ${err.message}</p>`;
+        }
+    }
+</script>
+{% endblock %}

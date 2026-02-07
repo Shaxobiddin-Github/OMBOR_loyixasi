@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ombor Nazorat{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">📦 Ombor</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span class="icon">🏠</span> Bosh sahifa
+                </a>
+                {% if user.is_operator_role %}
+                <a href="{% url 'movement_in' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'movement_in' %}active{% endif %}">
+                    <span class="icon">📥</span> Kirim
+                </a>
+                <a href="{% url 'movement_out' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'movement_out' %}active{% endif %}">
+                    <span class="icon">📤</span> Chiqim
+                </a>
+                {% endif %}
+                <a href="{% url 'movement_list' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'movement_list' %}active{% endif %}">
+                    <span class="icon">📋</span> Harakatlar
+                </a>
+                <a href="{% url 'product_list' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                    <span class="icon">📦</span> Mahsulotlar
+                </a>
+                <a href="{% url 'report_dashboard' %}"
+                    class="nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">📊</span> Hisobotlar
+                </a>
+                <a href="{% url 'qr_code_dashboard' %}"
+                    class="nav-item {% if 'qr' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">🏷️</span> QR Kodlar
+                </a>
+                {% if user.is_admin_role %}
+                <a href="{% url 'employee_list' %}"
+                    class="nav-item {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}">
+                    <span class="icon">👥</span> Xodimlar
+                </a>
+                <a href="{% url 'admin:index' %}" class="nav-item">
+                    <span class="icon">⚙️</span> Admin panel
+                </a>
+                <a href="{% url 'backup_download' %}" class="nav-item">
+                    <span class="icon">💾</span> Backup
+                </a>
+                {% endif %}
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span class="user-name">{{ user.username }}</span>
+                    <span class="user-role">{{ user.get_role_display }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="logout-btn">Chiqish</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                    <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    <div class="auth-container">
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

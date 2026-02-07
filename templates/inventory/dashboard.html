@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Bosh sahifa - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Bosh sahifa</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-label">Mahsulotlar</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_categories }}</div>
+            <div class="stat-label">Kategoriyalar</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_employees }}</div>
+            <div class="stat-label">Xodimlar</div>
+        </div>
+    </div>
+
+    <div class="stat-card {% if low_stock_count > 0 %}warning{% endif %}">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ low_stock_count }}</div>
+            <div class="stat-label">Kam zaxira</div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card success">
+        <div class="stat-icon">📥</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ today_in }}</div>
+            <div class="stat-label">Bugungi kirim</div>
+        </div>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-icon">📤</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ today_out }}</div>
+            <div class="stat-label">Bugungi chiqim</div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_operator_role %}
+<div class="quick-actions">
+    <h2>Tezkor harakatlar</h2>
+    <div class="action-buttons">
+        <a href="{% url 'movement_in' %}" class="btn btn-success btn-lg">
+            📥 Yangi kirim
+        </a>
+        <a href="{% url 'movement_out' %}" class="btn btn-warning btn-lg">
+            📤 Yangi chiqim
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="recent-movements">
+    <h2>So'nggi harakatlar</h2>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Turi</th>
+                    <th>Holat</th>
+                    <th>Bajaruvchi</th>
+                    <th>Face ID</th>
+                    <th>Vaqt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movement in recent_movements %}
+                <tr>
+                    <td><a href="{% url 'movement_detail' movement.id %}">{{ movement.id }}</a></td>
+                    <td>
+                        <span
+                            class="badge {% if movement.movement_type == 'IN' %}badge-success{% else %}badge-warning{% endif %}">
+                            {{ movement.get_movement_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ movement.status|lower }}">
+                            {{ movement.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ movement.performed_by.username }}</td>
+                    <td>{% if movement.face_employee %}{{ movement.face_employee.name }}{% else %}-{% endif %}</td>
+                    <td>{{ movement.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Hozircha harakatlar yo'q</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

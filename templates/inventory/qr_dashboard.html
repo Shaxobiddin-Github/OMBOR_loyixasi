@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Kodlar - Ombor Nazorat{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🏷️ QR Kodlar</h1>
+    <p class="subtitle">Mahsulotlar uchun QR kodlarni ko'rish va chop etish</p>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-group">
+        <label for="category-filter">📁 Kategoriya:</label>
+        <select id="category-filter" onchange="filterByCategory(this.value)">
+            <option value="">Barchasi</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if selected_category == cat.id %} selected{% endif %}>
+                {{ cat.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="action-group">
+        <button type="button" class="btn btn-warning" onclick="printAllVisible()">
+            🖨️ Hammasini Chop Etish ({{ products_with_qr|length }})
+        </button>
+        <button type="button" class="btn btn-primary" onclick="printSelected()">
+            🖨️ Tanlanglarni Chop Etish
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="selectAll()">
+            ☑️ Barchasini Tanlash
+        </button>
+    </div>
+</div>
+
+<div class="qr-grid">
+    {% for item in products_with_qr %}
+    <div class="qr-card" data-product-id="{{ item.product.id }}">
+        <div class="qr-checkbox">
+            <input type="checkbox" class="product-checkbox" value="{{ item.product.id }}" id="cb_{{ item.product.id }}">
+        </div>
+        <div class="qr-image">
+            <img src="{{ item.qr_base64 }}" alt="QR Code for {{ item.product.name }}">
+        </div>
+        <div class="qr-info">
+            <h3>{{ item.product.name }}</h3>
+            <p class="sku">SKU: {{ item.product.sku }}</p>
+            <p class="barcode">{{ item.qr_data }}</p>
+            <span class="category-badge">{{ item.product.category.name }}</span>
+        </div>
+        <div class="qr-actions">
+            <a href="{% url 'qr_code_single' item.product.id %}" class="btn btn-sm btn-success" download>
+                📥 Yuklab Olish
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <p class="no-data">Mahsulotlar topilmadi</p>
+    {% endfor %}
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 16px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+    }
+
+    .subtitle {
+        color: var(--text-muted, #666);
+        margin: 4px 0 0;
+    }
+
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: var(--card-bg, #fff);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+    }
+
+    .filter-group select {
+        padding: 10px 16px;
+        border: 1px solid var(--border-color, #ddd);
+        border-radius: 8px;
+        font-size: 1rem;
+        min-width: 200px;
+        cursor: pointer;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .qr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+    }
+
+    .qr-card {
+        background: var(--card-bg, #fff);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .qr-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .qr-card.selected {
+        border: 2px solid #007bff;
+        background: #f0f8ff;
+    }
+
+    .qr-checkbox {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+    }
+
+    .qr-checkbox input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .qr-image img {
+        width: 150px;
+        height: 150px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-info h3 {
+        margin: 12px 0 4px;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .qr-info .sku {
+        color: var(--text-muted, #666);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .qr-info .barcode {
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: #333;
+        margin: 4px 0;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-top: 8px;
+    }
+
+    .qr-actions {
+        margin-top: 12px;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f0ad4e, #ec971f);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .no-data {
+        text-align: center;
+        color: var(--text-muted, #666);
+        grid-column: 1 / -1;
+        padding: 40px;
+    }
+</style>
+
+<script>
+    function filterByCategory(categoryId) {
+        const url = new URL(window.location.href);
+        if (categoryId) {
+            url.searchParams.set('category', categoryId);
+        } else {
+            url.searchParams.delete('category');
+        }
+        window.location.href = url.toString();
+    }
+
+    function printAllVisible() {
+        const allIds = [];
+        document.querySelectorAll('.product-checkbox').forEach(cb => {
+            allIds.push(cb.value);
+        });
+
+        if (allIds.length === 0) {
+            alert('Chop etish uchun mahsulotlar yo\'q!');
+            return;
+        }
+
+        const url = `{% url 'qr_code_print' %}?${allIds.map(id => 'ids=' + id).join('&')}`;
+        window.open(url, '_blank');
+    }
+
+    function selectAll() {
+        const checkboxes = document.querySelectorAll('.product-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+            updateCardSelection(cb);
+        });
+    }
+
+    function updateCardSelection(checkbox) {
+        const card = checkbox.closest('.qr-card');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    }
+
+    function printSelected() {
+        const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+
+        if (ids.length === 0) {
+            alert('Iltimos, kamida bitta mahsulotni tanlang!');
+            return;
+        }
+
+        const url = `{% url 'qr_code_print' %}?${ids.map(id => 'ids=' + id).join('&')}`;
+        window.open(url, '_blank');
+    }
+
+    // Add click handlers
+    document.querySelectorAll('.product-checkbox').forEach(cb => {
+        cb.addEventListener('change', function () {
+            updateCardSelection(this);
+        });
+    });
+
+    // Allow clicking on card to toggle selection
+    document.querySelectorAll('.qr-card').forEach(card => {
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('.qr-actions') || e.target.closest('.qr-checkbox')) return;
+            const checkbox = this.querySelector('.product-checkbox');
+            checkbox.checked = !checkbox.checked;
+            updateCardSelection(checkbox);
+        });
+    });
+</script>
+{% endblock %}
