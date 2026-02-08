@@ -5,6 +5,7 @@ let itemsCount = items.length;
 let selectedProduct = null;
 let turboMode = false;
 let soundEnabled = true;
+let ignoreStock = false;
 
 // Sound Manager (Web Audio API)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -58,6 +59,18 @@ function initSettings() {
         soundCheck.addEventListener('change', (e) => {
             soundEnabled = e.target.checked;
             localStorage.setItem('soundEnabled', soundEnabled);
+        });
+    }
+
+    // Ignore Stock setting
+    const ignoreStockCheck = document.getElementById('ignore-stock');
+    ignoreStock = localStorage.getItem('ignoreStock') === 'true';
+
+    if (ignoreStockCheck) {
+        ignoreStockCheck.checked = ignoreStock;
+        ignoreStockCheck.addEventListener('change', (e) => {
+            ignoreStock = e.target.checked;
+            localStorage.setItem('ignoreStock', ignoreStock);
         });
     }
 
@@ -178,12 +191,9 @@ async function confirmAddItem(directQty = null) {
         return;
     }
 
-    // Check stock for OUT
-    if (CONFIG.movementType === 'OUT' && quantity > selectedProduct.stock_qty) {
-        SOUNDS.ERROR();
-        if (!directQty) alert(`Yetarli zaxira yo'q (mavjud: ${selectedProduct.stock_qty})`);
-        else showToast('qr-error', `Zaxira yetmaydi: ${selectedProduct.stock_qty}`, 'error');
-        return;
+    // Show warning for OUT if stock is low (non-blocking) - skip if ignoreStock is enabled
+    if (!ignoreStock && CONFIG.movementType === 'OUT' && quantity > selectedProduct.stock_qty) {
+        showToast('qr-error', `⚠️ Diqqat: Zaxira kam (mavjud: ${selectedProduct.stock_qty}). Minusga o'tadi.`, 'error');
     }
 
     // Ensure movement exists

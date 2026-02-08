@@ -56,13 +56,7 @@ class StockService:
             )
             
             if movement.movement_type == 'OUT':
-                # Check sufficient stock
-                if stock.current_qty < item.quantity:
-                    raise ValidationError(
-                        f"{item.product.name}: "
-                        f"Mavjud zaxira {stock.current_qty} {item.product.unit}, "
-                        f"so'ralgan {item.quantity} {item.product.unit}"
-                    )
+                # Check sufficient stock (DISABLED - allow negative stock as per request)
                 stock.current_qty -= item.quantity
             else:  # IN
                 stock.current_qty += item.quantity

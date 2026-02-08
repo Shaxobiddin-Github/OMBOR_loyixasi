@@ -1,0 +1,32 @@
+/* Custom Admin Styles for Ombor Nazorat */
+
+/* QR Code Preview */
+.field-qr_code_preview img {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Fieldset improvements */
+fieldset.collapse .fieldset-heading {
+    cursor: pointer;
+}
+
+/* Stock column highlight */
+.column-get_stock {
+    font-weight: bold;
+    color: #17a2b8;
+}
+
+/* Better form layout */
+.form-row {
+    margin-bottom: 10px;
+}
+
+/* Barcode field read-only style */
+.field-barcode .readonly {
+    font-family: monospace;
+    font-size: 14px;
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+}

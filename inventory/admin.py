@@ -21,11 +21,65 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sku', 'barcode', 'category', 'unit', 'min_stock')
-    list_filter = ('category',)
+    list_display = ('name', 'sku', 'barcode', 'category', 'unit', 'min_stock', 'get_stock')
+    list_filter = ('category', 'unit')
     search_fields = ('name', 'sku', 'barcode')
     ordering = ('name',)
-    readonly_fields = ('uid', 'created_at', 'updated_at')
+    readonly_fields = ('uid', 'barcode', 'created_at', 'updated_at', 'qr_code_preview')
+    
+    fieldsets = (
+        ('Asosiy Ma\'lumotlar', {
+            'fields': ('name', 'sku', 'category')
+        }),
+        ('O\'lchov va Zaxira', {
+            'fields': ('unit', 'min_stock')
+        }),
+        ('Tavsif', {
+            'fields': ('description',),
+            'classes': ('collapse',)
+        }),
+        ('Avtomatik Generatsiya (O\'zgartirish mumkin emas)', {
+            'fields': ('uid', 'barcode', 'qr_code_preview'),
+            'classes': ('collapse',)
+        }),
+        ('Vaqtlar', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_stock(self, obj):
+        try:
+            return f"{obj.stock.current_qty} {obj.unit}"
+        except:
+            return "0"
+    get_stock.short_description = "Qoldiq"
+    
+    def qr_code_preview(self, obj):
+        if obj.barcode:
+            from django.utils.html import format_html
+            from .qr_service import QRCodeService
+            qr_data = QRCodeService.generate_qr_base64(obj.barcode, size=150)
+            return format_html('<img src="{}" style="max-width:150px; border:1px solid #ccc; padding:5px;"/>', qr_data)
+        return "-"
+    qr_code_preview.short_description = "QR Kod"
+    
+    def save_model(self, request, obj, form, change):
+        # Auto-generate barcode ONLY if not set
+        if not obj.barcode:
+            import time
+            import random
+            # Format: 13 digits (EAN-13 style)
+            # 2 digits prefix (99 - internal) + 10 digits timestamp/random + 1 check/random
+            timestamp = str(int(time.time()))[-8:] 
+            random_part = str(random.randint(100, 999))
+            obj.barcode = f"99{timestamp}{random_part}"
+        super().save_model(request, obj, form, change)
+    
+    class Media:
+        css = {
+            'all': ('css/admin_custom.css',)
+        }
 
 
 @admin.register(Stock)

@@ -266,13 +266,28 @@ def product_by_barcode(request):
     GET /inventory/product/by-barcode/?q=...
     
     Returns product info with current stock.
+    Supports Barcode, SKU, and Name search.
     """
-    barcode = request.GET.get('q', '').strip()
-    if not barcode:
-        return JsonResponse({'found': False, 'error': 'Barcode berilmadi'})
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'found': False, 'error': 'Kod berilmadi'})
     
     try:
-        product = Product.objects.select_related('category').get(barcode=barcode)
+        # Try exact/insensitive match on Barcode first (most common)
+        product = Product.objects.filter(barcode__iexact=query).first()
+        
+        # If not found, try SKU
+        if not product:
+            product = Product.objects.filter(sku__iexact=query).first()
+            
+        # If still not found, try Name (only if query is long enough to avoid bad matches)
+        if not product and len(query) > 3:
+            product = Product.objects.filter(name__icontains=query).first()
+            
+        if not product:
+             return JsonResponse({'found': False, 'error': f'Mahsulot topilmadi: {query}'})
+
+        # Get stock info
         stock = Stock.objects.filter(product=product).first()
         
         return JsonResponse({
@@ -289,8 +304,8 @@ def product_by_barcode(request):
                 'min_stock': product.min_stock
             }
         })
-    except Product.DoesNotExist:
-        return JsonResponse({'found': False, 'error': f'QR topilmadi: {barcode}'})
+    except Exception as e:
+        return JsonResponse({'found': False, 'error': str(e)})
 
 
 @login_required
@@ -448,15 +463,13 @@ def add_movement_item(request, movement_id):
     except Product.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Mahsulot topilmadi'}, status=404)
     
-    # Check stock for OUT
+    # Check stock for OUT (optional warning)
+    warning = None
     if movement.movement_type == 'OUT':
         stock = Stock.objects.filter(product=product).first()
         stock_qty = stock.current_qty if stock else 0
         if stock_qty < quantity:
-            return JsonResponse({
-                'ok': False, 
-                'error': f'Yetarli zaxira yo\'q (mavjud: {stock_qty})'
-            }, status=400)
+            warning = f'Diqqat: Zaxira yetarli emas (mavjud: {stock_qty}). Qoldiq minusga o\'tadi.'
     
     # Create or update item
     item, created = MovementItem.objects.get_or_create(
@@ -473,7 +486,8 @@ def add_movement_item(request, movement_id):
     return JsonResponse({
         'ok': True,
         'item_id': item.id,
-        'total_quantity': item.quantity
+        'total_quantity': item.quantity,
+        'warning': warning
     })
 
 

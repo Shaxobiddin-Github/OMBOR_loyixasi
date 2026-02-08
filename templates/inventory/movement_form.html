@@ -45,13 +45,18 @@
             {% endif %}
 
             <div class="scanner-controls"
-                style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 5px; flex-wrap: wrap; color: #1e293b;">
                 <label style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px;">
                     <input type="checkbox" id="turbo-mode"> ⚡ <b>Turbo Rejim</b>
                 </label>
                 <div style="height: 20px; width: 1px; background: #dee2e6;"></div>
                 <label style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px;">
                     <input type="checkbox" id="sound-mode" checked> 🔊 <b>Ovoz</b>
+                </label>
+                <div style="height: 20px; width: 1px; background: #dee2e6;"></div>
+                <label
+                    style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 5px; color: #dc3545;">
+                    <input type="checkbox" id="ignore-stock"> 🚫 <b>Zaxirani e'tiborsiz qoldirish</b>
                 </label>
             </div>
 
@@ -162,13 +167,13 @@
         {% if pending_movement %}
     {% for item in pending_movement.items.all %}
     {
-        id: {{ item.id }},
-        productId: {{ item.product.id }},
+        id: { { item.id } },
+        productId: { { item.product.id } },
         name: '{{ item.product.name|escapejs }}',
             sku: '{{ item.product.sku|escapejs }}',
-                quantity: {{ item.quantity }},
+                quantity: { { item.quantity } },
         unit: '{{ item.product.unit|escapejs }}',
-            stockQty: {{ item.product.stock.current_qty|default:0 }}
+            stockQty: { { item.product.stock.current_qty |default: 0 } }
     },
     {% endfor %}
     {% endif %}
