@@ -11,12 +11,27 @@ from django.conf import settings
 
 
 class Employee(models.Model):
-    """Employee with Face ID registration."""
+    """Employee with Face ID registration and category-based portfolio."""
     name = models.CharField(max_length=100, verbose_name="Ism")
     employee_id = models.CharField(max_length=50, unique=True, verbose_name="Xodim ID")
     photo = models.ImageField(upload_to='employees/', blank=True, null=True, verbose_name="Rasm")
     face_label = models.IntegerField(unique=True, verbose_name="Face Label (LBPH)")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
+    is_commander = models.BooleanField(default=False, verbose_name="Komandir (Rahbar)")
+    assigned_categories = models.ManyToManyField(
+        'Category',
+        blank=True,
+        related_name='assigned_employees',
+        verbose_name="Biriktirilgan toifalar"
+    )
+    supervisor = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subordinates',
+        verbose_name="Rahbar (Komandir)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,6 +69,14 @@ class Product(models.Model):
         on_delete=models.PROTECT, 
         related_name='products',
         verbose_name="Kategoriya"
+    )
+    assigned_to = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_products',
+        verbose_name="Biriktirilgan xodim"
     )
     barcode = models.CharField(
         max_length=100, 
@@ -150,7 +173,16 @@ class Movement(models.Model):
         null=True,
         blank=True,
         related_name='movements',
-        verbose_name="Face ID xodim"
+        verbose_name="Face ID xodim (aktor)"
+    )
+    # Commander delegation: target employee whose items are being checked out
+    target_employee = models.ForeignKey(
+        Employee,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='delegated_movements',
+        verbose_name="Maqsadli xodim"
     )
     face_verified = models.BooleanField(default=False, verbose_name="Face tasdiqlandi")
     face_confidence = models.FloatField(null=True, blank=True, verbose_name="Face ishonch darajasi")
@@ -160,6 +192,7 @@ class Movement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     note = models.TextField(blank=True, verbose_name="Izoh")
+    is_emergency = models.BooleanField(default=False, verbose_name="Ekstrenniy rejim")
     
     # For reversal - points to original movement that was cancelled
     reversed_movement = models.ForeignKey(

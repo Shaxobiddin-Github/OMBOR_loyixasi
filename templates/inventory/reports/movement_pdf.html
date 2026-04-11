@@ -108,10 +108,14 @@
                 </td>
                 <td>{{ m.created_at|date:"d.m.Y H:i" }}</td>
                 <td>{{ m.performed_by.username }}</td>
-                <td>{{ m.face_employee.name|default:"-" }}</td>
+                <td>
+                    {% if m.target_employee %}{{ m.target_employee.name }}{% else %}{{ m.face_employee.name|default:"-"
+                    }}{% endif %}
+                </td>
                 <td class="items-cell">
                     {% for item in m.items.all %}
-                    {{ item.product.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+                    {{ item.product.name }} [ID:{{ item.product.id }}|{{ item.product.barcode }}] ({{ item.quantity
+                    }}){% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </td>
                 <td>{{ m.note|default:"-"|truncatewords:10 }}</td>

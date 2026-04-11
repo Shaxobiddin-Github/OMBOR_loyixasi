@@ -6,13 +6,13 @@
     <title>{{ title }}</title>
     <style>
         @page {
-            size: A4;
+            size: A4 landscape;
             margin: 2cm;
         }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 10px;
             line-height: 1.4;
         }
 
@@ -59,10 +59,12 @@
         .warning {
             color: #c0392b;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .ok {
             color: #27ae60;
+            white-space: nowrap;
         }
 
         .footer {
@@ -90,7 +92,9 @@
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>SKU</th>
+                <th>Shtrix kod (QR)</th>
                 <th>Mahsulot</th>
                 <th>Kategoriya</th>
                 <th>O'lchov</th>
@@ -102,7 +106,9 @@
         <tbody>
             {% for stock in stocks %}
             <tr>
+                <td>{{ stock.product.id }}</td>
                 <td>{{ stock.product.sku }}</td>
+                <td>{{ stock.product.barcode }}</td>
                 <td>{{ stock.product.name }}</td>
                 <td>{{ stock.product.category.name }}</td>
                 <td>{{ stock.product.unit }}</td>

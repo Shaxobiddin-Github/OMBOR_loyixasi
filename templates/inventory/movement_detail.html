@@ -31,7 +31,10 @@
             <dd>{{ movement.created_at|date:"d.m.Y H:i:s" }}</dd>
 
             <dt>Bajaruvchi</dt>
-            <dd>{{ movement.performed_by.username }} ({{ movement.performed_by.get_role_display }})</dd>
+            <dd>{{ movement.performed_by.username }}</dd>
+
+            <dt>Egasi (Target)</dt>
+            <dd>{{ movement.target_employee.name|default:"-" }}</dd>
 
             <dt>Izoh</dt>
             <dd>{{ movement.note|default:"-" }}</dd>

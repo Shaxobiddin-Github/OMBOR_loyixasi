@@ -9,6 +9,7 @@ Inventory views for warehouse management.
 import json
 import os
 import glob
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, FileResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
@@ -16,13 +17,15 @@ from django.views.decorators.http import require_POST, require_GET
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from datetime import timedelta
 from django.utils.dateparse import parse_datetime
 from django.conf import settings
 from django.contrib import messages
 
 from accounts.decorators import admin_required, operator_required
 from .models import Employee, Category, Product, Stock, Movement, MovementItem
-from .services import StockService
+from .services import StockService, CheckoutService
 from .face_service import FaceService
 
 
@@ -174,11 +177,15 @@ def face_verify(request):
         request.session['face_verified_at'] = timezone.now().isoformat()
         request.session['face_confidence'] = result['confidence']
         
+        categories = list(employee.assigned_categories.values('id', 'name'))
+        
         return JsonResponse({
             'ok': True,
             'employee_id': employee.id,
             'name': employee.name,
-            'confidence': result['confidence']
+            'confidence': result['confidence'],
+            'is_commander': employee.is_commander,
+            'categories': categories,
         })
     
     return JsonResponse({'ok': False, 'error': result['message']})
@@ -187,16 +194,19 @@ def face_verify(request):
 @login_required
 @require_GET
 def face_status(request):
-    """Check current face verification status."""
+    """Check current face verification status with category/commander info."""
     employee_id = check_face_verified(request)
     if employee_id:
         try:
             employee = Employee.objects.get(id=employee_id)
+            categories = list(employee.assigned_categories.values('id', 'name'))
             return JsonResponse({
                 'verified': True,
                 'employee_id': employee.id,
                 'name': employee.name,
-                'confidence': request.session.get('face_confidence', 0)
+                'confidence': request.session.get('face_confidence', 0),
+                'is_commander': employee.is_commander,
+                'categories': categories,
             })
         except Employee.DoesNotExist:
             pass
@@ -300,6 +310,10 @@ def product_by_barcode(request):
                 'barcode': product.barcode,
                 'unit': product.unit,
                 'category': product.category.name,
+                'assigned_to': {
+                    'id': product.assigned_to.id,
+                    'name': product.assigned_to.name
+                } if product.assigned_to else None,
                 'stock_qty': stock.current_qty if stock else 0,
                 'min_stock': product.min_stock
             }
@@ -357,15 +371,70 @@ def movement_in(request):
         movement_type='IN',
         status='PENDING'
     ).first()
+
+    # Auto-cleanup old pending movements (older than 24 hours)
+    if pending and pending.created_at < timezone.now() - timedelta(hours=24):
+        pending.status = 'CANCELLED'
+        pending.save()
+        pending = None
     
-    employees = Employee.objects.filter(is_active=True)
+    # Serialize pending items
+    pending_items = []
+    if pending:
+        for item in pending.items.select_related('product', 'product__stock').all():
+            pending_items.append({
+                'id': item.id,
+                'productId': item.product.id,
+                'name': item.product.name,
+                'sku': item.product.sku,
+                'quantity': item.quantity,
+                'unit': item.product.unit,
+                'stockQty': getattr(item.product.stock, 'current_qty', 0) if hasattr(item.product, 'stock') else 0
+            })
+
+    # Serialize employees based on Face ID verification
+    # If Face ID is verified:
+    # - Commander: sees self + subordinates
+    # - Regular: sees only self
+    # If NOT verified:
+    # - Show ALL active employees (user must verify face to proceed properly)
     
+    actor_id = check_face_verified(request)
+    employees = Employee.objects.filter(is_active=True).prefetch_related('assigned_categories')
+
+    if actor_id:
+        try:
+            actor = Employee.objects.get(id=actor_id)
+            if actor.is_commander:
+                # Commander: Self + Subordinates
+                employees = employees.filter(Q(id=actor.id) | Q(supervisor=actor))
+            else:
+                # Regular: Only Self
+                employees = employees.filter(id=actor.id)
+        except Employee.DoesNotExist:
+            pass # Should not happen if session is valid
+
+    employees_data = []
+    for emp in employees:
+        cats = list(emp.assigned_categories.values('id', 'name'))
+        employees_data.append({
+            'id': emp.id,
+            'name': emp.name,
+            'employee_id': emp.employee_id,
+            'is_commander': emp.is_commander,
+            'supervisor_id': emp.supervisor_id,
+            'categories': cats,
+        })
+
     context = {
         'movement_type': 'IN',
         'movement_type_display': 'Kirim',
         'pending_movement': pending,
+        'pending_items_json': json.dumps(pending_items),
         'employees': employees,
-        'face_verified': check_face_verified(request) is not None,
+        'employees_json': json.dumps(employees_data),
+        'face_verified': actor_id is not None,
+        'user_employee_id': request.user.employee.id if hasattr(request.user, 'employee') else None,
     }
     return render(request, 'inventory/movement_form.html', context)
 
@@ -373,23 +442,58 @@ def movement_in(request):
 @login_required
 @operator_required
 def movement_out(request):
-    """Chiqim (OUT) movement page."""
+    """Chiqim (OUT) checkout page — toifa asosidagi."""
+    # Check for pending movement
     pending = Movement.objects.filter(
         performed_by=request.user,
         movement_type='OUT',
         status='PENDING'
     ).first()
-    
-    employees = Employee.objects.filter(is_active=True)
+
+    # Auto-cleanup old pending movements
+    if pending and pending.created_at < timezone.now() - timedelta(hours=24):
+        pending.status = 'CANCELLED'
+        pending.save()
+        pending = None
+
+    # Serialize pending items
+    pending_items = []
+    if pending:
+        for item in pending.items.select_related('product', 'product__stock').all():
+            pending_items.append({
+                'id': item.id,
+                'productId': item.product.id,
+                'name': item.product.name,
+                'sku': item.product.sku,
+                'quantity': item.quantity,
+                'unit': item.product.unit,
+                'stockQty': getattr(item.product.stock, 'current_qty', 0) if hasattr(item.product, 'stock') else 0
+            })
+            
+    employees = Employee.objects.filter(is_active=True).prefetch_related('assigned_categories')
+    employees_data = []
+    for emp in employees:
+        cats = list(emp.assigned_categories.values('id', 'name'))
+        employees_data.append({
+            'id': emp.id,
+            'name': emp.name,
+            'employee_id': emp.employee_id,
+            'is_commander': emp.is_commander,
+            'supervisor_id': emp.supervisor_id,
+            'categories': cats,
+        })
     
     context = {
         'movement_type': 'OUT',
         'movement_type_display': 'Chiqim',
         'pending_movement': pending,
-        'employees': employees,
+        'pending_items_json': json.dumps(pending_items),
         'face_verified': check_face_verified(request) is not None,
+        'employees': employees,
+        'employees_json': json.dumps(employees_data),
+        'user_employee_id': request.user.employee.id if hasattr(request.user, 'employee') else None,
     }
-    return render(request, 'inventory/movement_form.html', context)
+    return render(request, 'inventory/checkout_form.html', context)
 
 
 @login_required
@@ -410,6 +514,7 @@ def create_movement(request):
         return JsonResponse({'ok': False, 'error': 'Noto\'g\'ri harakat turi'}, status=400)
     
     # Cancel any existing pending movement of same type
+    # This acts as a 'force restart' if a pending movement already exists
     Movement.objects.filter(
         performed_by=request.user,
         movement_type=movement_type,
@@ -420,7 +525,8 @@ def create_movement(request):
         movement_type=movement_type,
         status='PENDING',
         performed_by=request.user,
-        note=data.get('note', '')
+        note=data.get('note', ''),
+        target_employee_id=data.get('target_employee_id')
     )
     
     return JsonResponse({
@@ -451,17 +557,29 @@ def add_movement_item(request, movement_id):
     except json.JSONDecodeError:
         return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
     
+    # ... (existing code)
     product_id = data.get('product_id')
     quantity = int(data.get('quantity', 0))
     unit_price = float(data.get('unit_price', 0))
-    
+    target_id = data.get('target_employee_id')
+
     if quantity <= 0:
         return JsonResponse({'ok': False, 'error': 'Miqdor 0 dan katta bo\'lishi kerak'}, status=400)
-    
+
+    # Allow updating target_employee if movement is empty
+    if target_id and not movement.items.exists():
+        try:
+            target_emp = Employee.objects.get(id=target_id)
+            movement.target_employee = target_emp
+            movement.save()
+        except Employee.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Tanlangan xodim topilmadi'}, status=400)
+
     try:
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Mahsulot topilmadi'}, status=404)
+    # ...
     
     # Check stock for OUT (optional warning)
     warning = None
@@ -471,6 +589,68 @@ def add_movement_item(request, movement_id):
         if stock_qty < quantity:
             warning = f'Diqqat: Zaxira yetarli emas (mavjud: {stock_qty}). Qoldiq minusga o\'tadi.'
     
+    # 5. Ownership & Permission Check for IN (Strict via Face ID)
+    if movement.movement_type == 'IN':
+        # MANDATORY: Verify Actor via Face ID
+        actor_id = check_face_verified(request)
+        if not actor_id:
+            return JsonResponse({
+                'ok': False, 
+                'error': 'Face ID orqali shaxsingizni tasdiqlang.'
+            }, status=403)
+            
+        try:
+            actor = Employee.objects.get(id=actor_id)
+        except Employee.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Tasdiqlangan xodim topilmadi.'}, status=403)
+
+        # Product Owner
+        product_owner = product.assigned_to
+        
+        # If product has no owner, anyone can claim it? 
+        # Or maybe it must be assigned first? 
+        # Let's assume if no owner, the Actor claims it (sets target to Self).
+        if not product_owner:
+            # If target not set, defaults to Actor
+            if not movement.target_employee:
+                movement.target_employee = actor
+                movement.save()
+            # If target is set, Actor must have permission for that Target
+            # (Logic handled below under "Permission to act for Target")
+        
+        else:
+            # Product has owner. 
+            # 1. Target must match Owner (You can only "IN" items into Owner's stock)
+            if not movement.target_employee:
+                 movement.target_employee = product_owner
+                 movement.save()
+            elif movement.target_employee != product_owner:
+                return JsonResponse({
+                    'ok': False,
+                    'error': f'Bu mahsulot {product_owner.name} ga tegishli. Uni {movement.target_employee.name} nomiga kirim qilib bo\'lmaydi.'
+                }, status=400)
+        
+        
+        # Permission Check: Can ACTOR perform action for TARGET?
+        # Target is now guaranteed to be set (either product_owner or Actor)
+        target = movement.target_employee
+        
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Permission: Actor={actor.id}(cmd={actor.is_commander}), Target={target.id}(sup={target.supervisor_id})")
+
+        is_allowed = False
+        if actor.id == target.id:
+            is_allowed = True
+        elif actor.is_commander and target.supervisor_id == actor.id:
+            is_allowed = True
+            
+        if not is_allowed:
+            return JsonResponse({
+                'ok': False,
+                'error': f'Sizda {target.name} uchun kirim qilish huquqi yo\'q.'
+            }, status=403)
+
+
     # Create or update item
     item, created = MovementItem.objects.get_or_create(
         movement=movement,
@@ -673,6 +853,304 @@ def discard_pending_movement(request):
     return redirect('dashboard')
 
 
+@login_required
+@operator_required
+@require_POST
+def bulk_out_all_stock(request):
+    """
+    POST /movement/bulk-out/
+    Create a PENDING OUT movement with ALL products that have stock > 0.
+    Each item's quantity = current stock level.
+    After Face ID + finalize, all stock goes to 0.
+    """
+    # Get all stocks with qty > 0
+    stocks_with_qty = Stock.objects.select_related('product').filter(current_qty__gt=0)
+
+    if not stocks_with_qty.exists():
+        return JsonResponse({
+            'ok': False,
+            'error': 'Omborda chiqarish uchun mahsulot yo\'q (barcha zaxira 0)'
+        }, status=400)
+
+    # Cancel any existing pending OUT movements for this user
+    Movement.objects.filter(
+        performed_by=request.user,
+        movement_type='OUT',
+        status='PENDING'
+    ).update(status='CANCELLED')
+
+    # Create new PENDING OUT movement
+    movement = Movement.objects.create(
+        movement_type='OUT',
+        status='PENDING',
+        performed_by=request.user,
+        note='Barcha mahsulotlarni chiqarish (bulk out)'
+    )
+
+    # Create MovementItem for each product with stock
+    items_data = []
+    for stock in stocks_with_qty:
+        item = MovementItem.objects.create(
+            movement=movement,
+            product=stock.product,
+            quantity=stock.current_qty,
+            unit_price=0
+        )
+        items_data.append({
+            'id': item.id,
+            'productId': stock.product.id,
+            'name': stock.product.name,
+            'sku': stock.product.sku,
+            'quantity': stock.current_qty,
+            'unit': stock.product.unit,
+            'stockQty': stock.current_qty,
+        })
+
+    return JsonResponse({
+        'ok': True,
+        'movement_id': movement.id,
+        'items': items_data,
+        'total_products': len(items_data),
+        'message': f'{len(items_data)} ta mahsulot chiqim uchun tayyor'
+    })
+
+# ============================================
+# Checkout Endpoints (Category-based)
+# ============================================
+
+@login_required
+@operator_required
+@require_POST
+def checkout_standard(request):
+    """
+    POST /checkout/standard/
+    Body: {"product_id": int, "quantity": int, "target_employee_id": int (optional)}
+    """
+    # 1. Face verification
+    employee_id = check_face_verified(request)
+    if not employee_id:
+        return JsonResponse({'ok': False, 'error': 'Face ID tasdiqlanmagan'}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
+    
+    product_id = data.get('product_id')
+    quantity = int(data.get('quantity', 1))
+    manual_target_id = data.get('target_employee_id')
+    
+    if not product_id:
+        return JsonResponse({'ok': False, 'error': 'product_id majburiy'}, status=400)
+    if quantity <= 0:
+        return JsonResponse({'ok': False, 'error': 'Miqdor musbat bo\'lishi kerak'}, status=400)
+
+    # 2. Get Actor
+    try:
+        actor = Employee.objects.get(id=employee_id)
+    except Employee.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Xodim topilmadi'}, status=404)
+
+    # 3. Get Product (Need owner to infer target)
+    try:
+        product = Product.objects.select_related('category', 'assigned_to').get(id=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Mahsulot topilmadi'}, status=404)
+
+    # 4. DETERMINE TARGET (Smart Logic)
+    target = None
+    
+    if manual_target_id:
+        # A. Manual Override
+        try:
+            target = Employee.objects.get(id=manual_target_id)
+        except Employee.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Tanlangan xodim topilmadi'}, status=400)
+    else:
+        # B. Auto-Inference
+        if not product.assigned_to:
+            # Unowned -> Self-Scan (Claims for Actor)
+            target = actor
+        elif product.assigned_to.id == actor.id:
+            # Owned by Actor -> Self-Scan
+            target = actor
+        else:
+            # Owned by someone else. Check relation.
+            owner = product.assigned_to
+            if actor.is_commander and owner.supervisor_id == actor.id:
+                # Owned by Subordinate -> Target = Owner
+                target = owner
+            else:
+                # Owned by non-subordinate -> BLOCK
+                return JsonResponse({
+                    'ok': False,
+                    'error': f"Mahsulot egasi ({owner.name}) sizning qo'l ostingizda emas."
+                }, status=403)
+
+    # Debug log
+    print(f"DEBUG: checkout_standard | Product: {product.id} | Owner: {product.assigned_to_id if product.assigned_to else 'None'} | Target: {target.id} | Actor: {actor.id}")
+
+    # 5. Permission Check (Actor vs Target)
+    try:
+        CheckoutService._resolve_permission(actor, target)
+    except ValidationError as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=403)
+
+    # 6. Ownership Validation (Double Check)
+    # If target is NOT the product owner, and product HAS an owner, block it.
+    # Exception: If product has NO owner, we allow target (usually Actor) to take it.
+    if product.assigned_to and product.assigned_to.id != target.id:
+         return JsonResponse({
+            'ok': False, 
+            'error': f"Bu mahsulot {target.name} ga tegishli emas. (Egasi: {product.assigned_to.name})"
+        }, status=400)
+
+    # 7. Get/Create PENDING Movement
+    movement, created = Movement.objects.get_or_create(
+        performed_by=request.user,
+        movement_type='OUT',
+        status='PENDING',
+        defaults={
+            'face_employee': actor,
+            'target_employee': target,
+            'face_verified': False,
+            'created_at': timezone.now()
+        }
+    )
+
+    # 8. Session Consistency Check
+    if not created:
+        if movement.target_employee and movement.target_employee.id != target.id:
+            if movement.items.exists():
+                return JsonResponse({
+                    'ok': False, 
+                    'error': f"Joriy sessiya {movement.target_employee.name} uchun ochilgan. Yakunlang yoki bekor qiling."
+                }, status=400)
+            else:
+                # Empty session -> switch target
+                movement.target_employee = target
+                movement.save()
+        elif not movement.target_employee:
+             movement.target_employee = target
+             movement.save()
+
+    # 9. Add Item
+    item, item_created = MovementItem.objects.get_or_create(
+        movement=movement,
+        product=product,
+        defaults={'quantity': 0}
+    )
+    item.quantity += quantity
+    item.save()
+
+    # Check stock warning
+    stock_qty = getattr(product.stock, 'current_qty', 0) if hasattr(product, 'stock') else 0
+    warning = None
+    if stock_qty < item.quantity:
+        warning = f"Diqqat: Zaxira yetarli emas ({stock_qty}). Minusga o'tadi."
+
+    # 10. Return Response (Include Target Info)
+    items_data = list(movement.items.select_related('product').values(
+        'id', 'product__name', 'product__sku', 'quantity'
+    ))
+    
+    return JsonResponse({
+        'ok': True,
+        'movement_id': movement.id,
+        'items': items_data,
+        'message': f"{product.name} qo'shildi",
+        'warning': warning,
+        'target_id': target.id,
+        'target_name': target.name
+    })
+
+
+@login_required
+@operator_required
+@require_POST
+def checkout_emergency(request):
+    """
+    POST /checkout/emergency/
+    Body: {"target_employee_id": int (optional)}
+    """
+    employee_id = check_face_verified(request)
+    if not employee_id:
+        return JsonResponse({'ok': False, 'error': 'Face ID tasdiqlanmagan'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        target_id = data.get('target_employee_id')
+    except:
+        target_id = None
+
+    try:
+        actor = Employee.objects.get(id=employee_id)
+        target = Employee.objects.get(id=target_id) if target_id else actor
+    except Employee.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Xodim topilmadi'}, status=404)
+
+    # Permission check
+    try:
+        CheckoutService._resolve_permission(actor, target)
+    except ValidationError as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=403)
+
+    # Get/Create Movement
+    movement, _ = Movement.objects.get_or_create(
+        performed_by=request.user,
+        movement_type='OUT',
+        status='PENDING',
+        defaults={
+            'face_employee': actor,
+            'target_employee': target,
+            'face_verified': False,
+            'created_at': timezone.now(),
+            'is_emergency': True
+        }
+    )
+    
+    if movement.items.exists():
+         # If existing items, ensure target matches or it's empty
+         if movement.target_employee and movement.target_employee.id != target.id:
+             return JsonResponse({'ok': False, 'error': 'Sessiya boshqa xodim uchun band. Yakunlang.'}, status=400)
+    
+    movement.target_employee = target
+    movement.is_emergency = True
+    movement.note = f"EKSTRENNIY: {target.name} (Items added)"
+    movement.save()
+
+    # Find all stock with qty > 0 assigned to target
+    stocks = Stock.objects.filter(
+        product__assigned_to=target, 
+        current_qty__gt=0
+    ).select_related('product')
+    
+    if not stocks.exists():
+        return JsonResponse({'ok': False, 'error': 'Chiqarish uchun mahsulot qolmadi.'}, status=400)
+
+    count = 0
+    for s in stocks:
+        item, _ = MovementItem.objects.get_or_create(
+            movement=movement,
+            product=s.product,
+            defaults={'quantity': 0}
+        )
+        item.quantity = s.current_qty # Snap to current stock
+        item.save()
+        count += 1
+
+    items_data = list(movement.items.select_related('product').values(
+        'id', 'product__name', 'product__sku', 'quantity'
+    ))
+
+    return JsonResponse({
+        'ok': True, 
+        'movement_id': movement.id,
+        'items': items_data,
+        'message': f"{count} xil mahsulot qo'shildi. Yakunlashni bosing."
+    })
+
+
 # ============================================
 # Backup
 # ============================================
@@ -777,7 +1255,7 @@ def download_stock_report(request):
         return HttpResponse("PDF yaratishda xatolik", status=500)
     else:
         # Excel
-        headers = ['SKU', 'Nomi', 'Kategoriya', 'O\'lchov', 'Hozirgi Soni', 'Min Soni', 'Holat']
+        headers = ['ID', 'SKU', 'Shtrix kod (QR)', 'Nomi', 'Kategoriya', 'O\'lchov', 'Hozirgi Soni', 'Min Soni', 'Holat']
         excel_output = service.generate_excel(
             data['excel_data'], headers, 
             sheet_name="Ombor", title="Ombor Qoldig'i Hisoboti"
@@ -866,7 +1344,9 @@ def download_low_stock_report(request):
     excel_data = []
     for s in low_stocks:
         excel_data.append([
+            s.product.id,
             s.product.sku,
+            s.product.barcode,
             s.product.name,
             s.product.category.name,
             s.current_qty,
@@ -889,7 +1369,7 @@ def download_low_stock_report(request):
             return response
         return HttpResponse("PDF yaratishda xatolik", status=500)
     else:
-        headers = ['SKU', 'Nomi', 'Kategoriya', 'Hozirgi Soni', 'Min Soni', 'Yetishmayotgan']
+        headers = ['ID', 'SKU', 'Shtrix kod (QR)', 'Nomi', 'Kategoriya', 'Hozirgi Soni', 'Min Soni', 'Yetishmayotgan']
         excel_output = service.generate_excel(
             excel_data, headers,
             sheet_name="Kamomat", title="Kamomat Hisoboti"

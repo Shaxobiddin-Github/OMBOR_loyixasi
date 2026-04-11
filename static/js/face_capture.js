@@ -1,6 +1,7 @@
 // Face Capture and Verification
 let video, canvas, ctx;
 let faceVerified = false;
+let cameraStream = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     video = document.getElementById('video');
@@ -33,6 +34,7 @@ async function startCamera() {
             }
         });
         video.srcObject = stream;
+        cameraStream = stream;
     } catch (err) {
         console.error('Kamera xatosi:', err);
         updateFaceStatus(false, 'Kamerani ochib bo\'lmadi');
@@ -63,10 +65,19 @@ async function captureFace() {
 
         if (data.ok) {
             faceVerified = true;
-            updateFaceStatus(true, `✅ ${data.name} (${data.confidence})`);
+            updateFaceStatus(true, `✅ ${data.name} (${data.confidence}%)`);
             updateFinalizeButton();
+            // Dispatch event for other scripts (movement.js)
+            document.dispatchEvent(new CustomEvent('face-verified', {
+                detail: {
+                    employee_id: data.employee_id,
+                    name: data.name,
+                    is_commander: data.is_commander
+                }
+            }));
         } else {
             updateFaceStatus(false, data.error || 'Yuz tanilmadi');
+            document.dispatchEvent(new CustomEvent('face-validation-failed', { detail: { error: data.error } }));
         }
     } catch (err) {
         updateFaceStatus(false, 'Server xatosi: ' + err.message);
@@ -80,8 +91,16 @@ async function checkFaceStatus() {
 
         if (data.verified) {
             faceVerified = true;
-            updateFaceStatus(true, `✅ ${data.name} (${data.confidence})`);
+            updateFaceStatus(true, `✅ ${data.name} (${data.confidence}%)`);
             updateFinalizeButton();
+            // Dispatch event for other scripts
+            document.dispatchEvent(new CustomEvent('face-verified', {
+                detail: {
+                    employee_id: data.employee_id,
+                    name: data.name,
+                    is_commander: data.is_commander
+                }
+            }));
         }
     } catch (err) {
         console.error('Face status check failed:', err);
@@ -105,3 +124,11 @@ function updateFinalizeButton() {
         btn.disabled = false;
     }
 }
+
+// Sahifa tark etilganda kamerani to'xtatish
+window.addEventListener('beforeunload', () => {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+});

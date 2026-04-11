@@ -48,7 +48,7 @@
                     class="nav-item {% if 'qr' in request.resolver_match.url_name %}active{% endif %}">
                     <span class="icon">🏷️</span> QR Kodlar
                 </a>
-                {% if user.is_admin_role %}
+                {% if user.is_admin_role or user.is_staff or user.is_superuser %}
                 <a href="{% url 'employee_list' %}"
                     class="nav-item {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}">
                     <span class="icon">👥</span> Xodimlar

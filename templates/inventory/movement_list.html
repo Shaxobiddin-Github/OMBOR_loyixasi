@@ -38,6 +38,7 @@
                 <th>Turi</th>
                 <th>Holat</th>
                 <th>Mahsulotlar</th>
+                <th>Xodim</th>
                 <th>Bajaruvchi</th>
                 <th>Face ID</th>
                 <th>Vaqt</th>
@@ -60,6 +61,7 @@
                     </span>
                 </td>
                 <td>{{ movement.total_items }} ta</td>
+                <td>{{ movement.target_employee.name|default:"-" }}</td>
                 <td>{{ movement.performed_by.username }}</td>
                 <td>
                     {% if movement.face_verified %}
@@ -77,7 +79,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="text-center">Harakat topilmadi</td>
+                <td colspan="9" class="text-center">Harakat topilmadi</td>
             </tr>
             {% endfor %}
         </tbody>

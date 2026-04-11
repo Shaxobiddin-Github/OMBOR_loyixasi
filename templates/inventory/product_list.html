@@ -36,6 +36,7 @@
                 <th>SKU</th>
                 <th>Barcode</th>
                 <th>Kategoriya</th>
+                <th>Biriktirilgan</th>
                 <th>Birlik</th>
                 <th>Zaxira</th>
                 <th>Min</th>
@@ -49,6 +50,7 @@
                 <td><code>{{ product.sku }}</code></td>
                 <td><code>{{ product.barcode }}</code></td>
                 <td>{{ product.category.name }}</td>
+                <td>{{ product.assigned_to.name|default:"-" }}</td>
                 <td>{{ product.unit }}</td>
                 <td>
                     {% if product.stock %}
@@ -68,7 +70,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="text-center">Mahsulot topilmadi</td>
+                <td colspan="9" class="text-center">Mahsulot topilmadi</td>
             </tr>
             {% endfor %}
         </tbody>

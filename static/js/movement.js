@@ -7,6 +7,28 @@ let turboMode = false;
 let soundEnabled = true;
 let ignoreStock = false;
 
+// faceVerified is already declared in face_capture.js
+// Sahifa yuklanganda serverdan kelgan holatni tekshirish
+if (typeof CONFIG !== 'undefined' && CONFIG.faceVerified) {
+    faceVerified = true;
+}
+
+// ── Toast xabar ko'rsatish ──
+function showToast(elementId, message, type) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    el.textContent = message;
+    el.className = 'toast ' + (type || '');
+    el.classList.remove('hidden');
+
+    // 4 soniyadan keyin yashirish
+    clearTimeout(el._toastTimer);
+    el._toastTimer = setTimeout(() => {
+        el.classList.add('hidden');
+    }, 4000);
+}
+
 // Sound Manager (Web Audio API)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function beep(freq = 520, duration = 200, type = 'sine') {
@@ -33,9 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
     initSettings();
     initQRInput();
     initModal();
+    initTargetSelect();
     initActions();
     renderItems();
     updateUI();
+
+    // Check initial state
+    if (faceVerified) {
+        unlockScanner();
+    }
+
+    // Listen for Face ID events
+    document.addEventListener('face-verified', (e) => {
+        faceVerified = true;
+        unlockScanner();
+        // If we have a target select, we might want to update it based on the verified user?
+        // But backend handles permission checks. 
+        // We could just refresh the page or update UI state.
+    });
+
+    document.addEventListener('face-validation-failed', () => {
+        faceVerified = false;
+        lockScanner();
+    });
 });
 
 function initSettings() {
@@ -85,6 +127,29 @@ function initSettings() {
     }
 }
 
+// Lock/Unlock Scanner
+function unlockScanner() {
+    const card = document.getElementById('scanner-card');
+    const input = document.getElementById('qr-input');
+
+    if (card) card.classList.remove('locked');
+    if (input) {
+        input.disabled = false;
+        input.focus();
+    }
+}
+
+function lockScanner() {
+    const card = document.getElementById('scanner-card');
+    const input = document.getElementById('qr-input');
+
+    if (card) card.classList.add('locked');
+    if (input) {
+        input.disabled = true;
+        input.value = '';
+    }
+}
+
 // QR Scanner Input
 function initQRInput() {
     const qrInput = document.getElementById('qr-input');
@@ -92,13 +157,21 @@ function initQRInput() {
 
     // Keep focus
     qrInput.addEventListener('blur', () => {
-        setTimeout(() => qrInput.focus(), 100);
+        if (!faceVerified) return; // Don't force focus if locked
+        setTimeout(() => {
+            // Check again in case state changed or modal opened
+            const modal = document.getElementById('qty-modal');
+            if (modal && !modal.classList.contains('hidden')) return;
+            if (faceVerified) qrInput.focus();
+        }, 100);
     });
 
     // Handle Enter
     qrInput.addEventListener('keypress', async (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault();
+
+        if (!faceVerified) return;
 
         const barcode = qrInput.value.trim();
         qrInput.value = '';
@@ -118,6 +191,24 @@ async function lookupProduct(barcode) {
         if (data.found) {
             selectedProduct = data.product;
             SOUNDS.SUCCESS();
+
+            // Auto-switch target for IN if Commander
+            if (CONFIG.movementType === 'IN' && data.product.assigned_to) {
+                const currentUser = CONFIG.employees.find(e => e.id == CONFIG.userEmployeeId);
+                const isCommander = currentUser && currentUser.is_commander;
+
+                if (isCommander && targetEmployeeId != data.product.assigned_to.id) {
+                    const select = document.getElementById('target-select');
+                    // Check if the assigned employee is in the list
+                    const optionExists = Array.from(select.options).some(o => o.value == data.product.assigned_to.id);
+
+                    if (optionExists) {
+                        select.value = data.product.assigned_to.id;
+                        targetEmployeeId = data.product.assigned_to.id;
+                        showToast('qr-success', `🔀 Buyurtmachi o'zgardi: ${data.product.assigned_to.name}`, 'success');
+                    }
+                }
+            }
 
             if (turboMode) {
                 // Direct add in Turbo Mode
@@ -213,7 +304,8 @@ async function confirmAddItem(directQty = null) {
             body: JSON.stringify({
                 product_id: selectedProduct.id,
                 quantity: quantity,
-                unit_price: unitPrice
+                unit_price: unitPrice,
+                target_employee_id: targetEmployeeId // Send current selection
             })
         });
 
@@ -250,7 +342,88 @@ async function confirmAddItem(directQty = null) {
     }
 }
 
+// Target Select Logic
+let targetEmployeeId = null;
+
+function initTargetSelect() {
+    const section = document.getElementById('target-section');
+    const select = document.getElementById('target-select');
+
+    // Only for IN movement
+    if (CONFIG.movementType !== 'IN') return;
+
+    // Show section if any employees exist (should always be true)
+    section.style.display = 'block';
+    select.innerHTML = ''; // Clear existing
+
+    // Determine permissions with loose equality
+    const currentUserId = CONFIG.userEmployeeId;
+    const currentUser = CONFIG.employees.find(e => e.id == currentUserId);
+    const isCommander = currentUser ? currentUser.is_commander : false;
+
+    // Populate
+    let count = 0;
+    CONFIG.employees.forEach(emp => {
+        let canSee = false;
+        // 1. I can always see myself
+        if (emp.id == currentUserId) canSee = true;
+        // 2. Commander can see everyone
+        else if (isCommander) canSee = true;
+
+        if (canSee) {
+            const opt = document.createElement('option');
+            opt.value = emp.id;
+            const isMe = (emp.id == currentUserId);
+            opt.textContent = emp.name + (isMe ? " (Men o'zim)" : "");
+            select.appendChild(opt);
+            count++;
+        }
+    });
+
+    // Fallback: If list is empty (e.g. user not found), at least show a placeholder or try to show self from ID?
+    if (count === 0 && currentUserId) {
+        const opt = document.createElement('option');
+        opt.value = currentUserId;
+        opt.textContent = "Men o'zim";
+        select.appendChild(opt);
+    }
+
+    // 3. Set Default or Pending Target
+    if (movementId && itemsCount > 0) {
+        select.disabled = true; // Lock if items exist
+    } else {
+        select.disabled = false;
+    }
+
+    // Set initial value
+    if (!targetEmployeeId) {
+        targetEmployeeId = currentUserId;
+        select.value = currentUserId;
+    }
+
+    select.addEventListener('change', () => {
+        targetEmployeeId = select.value ? parseInt(select.value) : null;
+    });
+}
+
+// Call initTargetSelect in DOMContentLoaded... added to main list below:
+
+// ─────────────────────────────────────────────
+
 async function createMovement(forceNew = false) {
+    // Collect data
+    const body = {
+        movement_type: CONFIG.movementType,
+        note: forceNew ? 'Force restart' : '',
+        force_new: forceNew
+    };
+
+    // Prepare target
+    const select = document.getElementById('target-select');
+    if (select && select.value) {
+        body.target_employee_id = parseInt(select.value);
+    }
+
     try {
         const resp = await fetch(CONFIG.urls.createMovement, {
             method: 'POST',
@@ -258,15 +431,16 @@ async function createMovement(forceNew = false) {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': CONFIG.csrfToken
             },
-            body: JSON.stringify({
-                movement_type: CONFIG.movementType,
-                note: forceNew ? 'Force restart' : ''
-            })
+            body: JSON.stringify(body)
         });
 
         const data = await resp.json();
         if (data.ok) {
             movementId = data.movement_id;
+
+            // Disable target select once movement created
+            if (select) select.disabled = true;
+
             if (forceNew) window.location.reload();
         } else {
             throw new Error(data.error);
@@ -347,6 +521,7 @@ async function removeItem(itemId) {
 function initActions() {
     const finalizeBtn = document.getElementById('finalize-btn');
     const cancelBtn = document.getElementById('cancel-btn');
+    const bulkOutBtn = document.getElementById('bulk-out-btn');
 
     if (finalizeBtn) {
         finalizeBtn.addEventListener('click', finalizeMovement);
@@ -354,6 +529,10 @@ function initActions() {
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', cancelMovement);
+    }
+
+    if (bulkOutBtn) {
+        bulkOutBtn.addEventListener('click', bulkOutAll);
     }
 }
 
@@ -375,6 +554,12 @@ async function finalizeMovement() {
         return;
     }
 
+    const btn = document.getElementById('finalize-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Yakunlanmoqda...';
+    }
+
     try {
         const url = CONFIG.urls.finalize.replace('{id}', movementId);
         const resp = await fetch(url, {
@@ -388,8 +573,40 @@ async function finalizeMovement() {
 
         if (data.ok) {
             SOUNDS.VERIFIED();
-            alert(data.message || 'Muvaffaqiyatli yakunlandi');
-            window.location.href = '/movements/';
+            // showToast('success', '✅ Muvaffaqiyatli yakunlandi'); // movement.js doesn't have showToast helper globally? 
+            // It seems movement.js used alert() in previous code. 
+            // But let's check if showToast exists? 
+            // The file I read (step 124) has showToast calls! e.g. line 136.
+            showToast('qr-success', '✅ Muvaffaqiyatli yakunlandi!', 'success');
+
+            // ──────────────────────────────────────────
+            // SHOW RESULT (Pseudo-Step 3)
+            // ──────────────────────────────────────────
+            const tbody = document.getElementById('items-body');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 30px;">
+                            <h2 style="color: #10b981;">✅ Yakunlandi</h2>
+                            <p>${data.message || 'Muvaffaqiyatli saqlandi'}</p>
+                            <p style="color: #64748b; font-size: 0.9em;">3 soniyadan so'ng yangilanadi...</p>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            // Hide buttons
+            if (btn) btn.style.display = 'none';
+            const cancelBtn = document.getElementById('cancel-btn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+
+            // ──────────────────────────────────────────
+            // DELAYED FULL RESET (3-5s)
+            // ──────────────────────────────────────────
+            setTimeout(() => {
+                resetUI();
+            }, 3000);
+
         } else {
             SOUNDS.ERROR();
             alert(data.error || 'Xato');
@@ -397,7 +614,18 @@ async function finalizeMovement() {
     } catch (err) {
         SOUNDS.ERROR();
         alert('Xato: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false; // updateUI will likely disable it anyway
+            btn.textContent = '✅ Yakunlash';
+            updateUI();
+        }
     }
+}
+
+// Alias for face_capture.js compatibility
+function updateFinalizeButton() {
+    updateUI();
 }
 
 async function cancelMovement() {
@@ -432,6 +660,109 @@ async function cancelMovement() {
 function updateUI() {
     const finalizeBtn = document.getElementById('finalize-btn');
     if (finalizeBtn) {
-        finalizeBtn.disabled = !(movementId && itemsCount > 0 && faceVerified);
+        if (finalizeBtn.style.display !== 'none') {
+            finalizeBtn.disabled = !(movementId && itemsCount > 0 && faceVerified);
+        }
+    }
+}
+
+function resetUI() {
+    // 1. Reset Data
+    movementId = null;
+    items = [];
+    itemsCount = 0;
+    faceVerified = false;
+    lockScanner(); // Ensure scanner is locked
+
+    // 2. Reset Tables & Counters
+    renderItems();
+
+    // 3. Reset Target Select
+    const targetSelect = document.getElementById('target-select');
+    if (targetSelect) {
+        targetSelect.value = "";
+        targetSelect.disabled = false;
+    }
+
+    // 4. Reset Face ID UI
+    if (typeof updateFaceStatus === 'function') {
+        updateFaceStatus(false, 'Face tasdiqlanmagan');
+    }
+
+    // 5. Update Buttons
+    const btn = document.getElementById('finalize-btn');
+    if (btn) {
+        btn.style.display = 'inline-block';
+        btn.disabled = false; // updateUI will fix this
+        btn.textContent = '✅ Yakunlash';
+    }
+    updateUI();
+
+    // 6. Reset Input
+    const qrInput = document.getElementById('qr-input');
+    if (qrInput) {
+        qrInput.value = '';
+        // qrInput.focus(); // Don't focus if locked
+    }
+}
+
+// Bulk Out All Stock
+async function bulkOutAll() {
+    // Double confirmation for safety
+    if (!confirm('⚠️ DIQQAT!\n\nOmbordagi BARCHA mahsulotlar chiqariladi.\nBarcha zaxira 0 ga tushadi.\n\nDavom etasizmi?')) {
+        return;
+    }
+    if (!confirm('🚨 YAKUNIY TASDIQLASH\n\nRostdan ham BARCHA mahsulotlarni chiqarib yubormochimisiz?\n\nBu amalni bekor qilib bo\'lmaydi!')) {
+        return;
+    }
+
+    const bulkBtn = document.getElementById('bulk-out-btn');
+    if (bulkBtn) {
+        bulkBtn.disabled = true;
+        bulkBtn.textContent = '⏳ Yuklanmoqda...';
+    }
+
+    try {
+        const resp = await fetch(CONFIG.urls.bulkOutAll, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CONFIG.csrfToken
+            }
+        });
+
+        const data = await resp.json();
+
+        if (data.ok) {
+            // Update local state with server response
+            movementId = data.movement_id;
+            items = data.items;
+            itemsCount = items.length;
+
+            renderItems();
+            updateUI();
+
+            SOUNDS.SUCCESS();
+            showToast('qr-success', `✅ ${data.message}`, 'success');
+
+            // Hide the bulk button after successful load
+            if (bulkBtn) {
+                bulkBtn.style.display = 'none';
+            }
+        } else {
+            SOUNDS.ERROR();
+            alert(data.error || 'Xatolik yuz berdi');
+            if (bulkBtn) {
+                bulkBtn.disabled = false;
+                bulkBtn.textContent = '🚨 Barchasini chiqarish (ombor bo\'shatish)';
+            }
+        }
+    } catch (err) {
+        SOUNDS.ERROR();
+        alert('Server xatosi: ' + err.message);
+        if (bulkBtn) {
+            bulkBtn.disabled = false;
+            bulkBtn.textContent = '🚨 Barchasini chiqarish (ombor bo\'shatish)';
+        }
     }
 }

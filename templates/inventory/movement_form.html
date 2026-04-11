@@ -2,6 +2,30 @@
 
 {% block title %}{{ movement_type_display }} - Ombor Nazorat{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Disabled overlay ── */
+    .locked-overlay {
+        position: relative;
+    }
+
+    .locked-overlay.locked::after {
+        content: '🔒 Avval Face ID tasdiqlang';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 12px;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 1em;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>{{ movement_type_display }}</h1>
@@ -10,7 +34,7 @@
 <div class="movement-container">
     <!-- QR Scanner Section -->
     <div class="scanner-section">
-        <div class="scanner-card">
+        <div class="scanner-card locked-overlay {% if not face_verified %}locked{% endif %}" id="scanner-card">
             <h3>📱 QR/Shtrix kod</h3>
 
             {% if pending_movement %}
@@ -60,7 +84,28 @@
                 </label>
             </div>
 
-            <input type="text" id="qr-input" class="qr-input" placeholder="QR skanerlang yoki yozing..." autofocus>
+            {% if movement_type == 'OUT' %}
+            <div style="margin-bottom: 15px;">
+                <button type="button" id="bulk-out-btn" class="btn btn-danger"
+                    style="width: 100%; padding: 12px; font-size: 1.1em; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #dc3545, #c82333); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">
+                    🚨 Barchasini chiqarish (ombor bo'shatish)
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- Target Employee Select (For IN/OUT delegation) -->
+            <div id="target-section"
+                style="margin-bottom: 15px; padding: 10px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; display: none;">
+                <label style="display: block; font-weight: bold; color: #0369a1; margin-bottom: 5px;">
+                    🎯 Kimga biriktiriladi / Kim uchun?
+                </label>
+                <select id="target-select"
+                    style="width: 100%; padding: 8px; border: 1px solid #7dd3fc; border-radius: 5px; background: #ffffff; color: #1e293b;">
+                    <option value="">— Men o'zim (Standard) —</option>
+                </select>
+            </div>
+
+            <input type="text" id="qr-input" class="qr-input" placeholder="QR skanerlang yoki yozing..." {% if not face_verified %}disabled{% endif %} autofocus>
             <div id="qr-error" class="toast error hidden"></div>
             <div id="qr-success" class="toast success hidden"></div>
         </div>
@@ -150,34 +195,24 @@
 {% block extra_js %}
 <script>
     const CONFIG = {
-        movementType: '{{ movement_type }}',
+        movementType: '{{ movement_type|escapejs }}',
         csrfToken: '{{ csrf_token }}',
-        urls: {
-            createMovement: '{% url "create_movement" %}',
+        employees: {{ employees_json| safe }},
+    userEmployeeId: {{ user_employee_id|default:"null" }},
+    faceVerified: {% if face_verified %}true{% else %}false{% endif %},
+    urls: {
+        createMovement: '{% url "create_movement" %}',
             addItem: '/movement/{id}/add-item/',
-            removeItem: '/movement/{id}/remove-item/{item_id}/',
-            finalize: '/movement/{id}/finalize/',
-            cancel: '/movement/{id}/cancel/',
-            productByBarcode: '{% url "product_by_barcode" %}',
-            faceVerify: '{% url "face_verify" %}',
-            faceStatus: '{% url "face_status" %}',
-        },
-        pendingMovementId: {% if pending_movement %}{{ pending_movement.id }}{% else %} null{% endif %},
-    pendingItems: [
-        {% if pending_movement %}
-    {% for item in pending_movement.items.all %}
-    {
-        id: { { item.id } },
-        productId: { { item.product.id } },
-        name: '{{ item.product.name|escapejs }}',
-            sku: '{{ item.product.sku|escapejs }}',
-                quantity: { { item.quantity } },
-        unit: '{{ item.product.unit|escapejs }}',
-            stockQty: { { item.product.stock.current_qty |default: 0 } }
+                removeItem: '/movement/{id}/remove-item/{item_id}/',
+                    finalize: '/movement/{id}/finalize/',
+                        cancel: '/movement/{id}/cancel/',
+                            productByBarcode: '{% url "product_by_barcode" %}',
+                                faceVerify: '{% url "face_verify" %}',
+                                    faceStatus: '{% url "face_status" %}',
+                                        bulkOutAll: '{% url "bulk_out_all_stock" %}'
     },
-    {% endfor %}
-    {% endif %}
-    ]
+    pendingMovementId: {% if pending_movement %}{{ pending_movement.id }}{% else %}null{% endif %},
+    pendingItems: {{ pending_items_json|safe|default:"[]" }}
     };
 </script>
 <script src="/static/js/face_capture.js"></script>

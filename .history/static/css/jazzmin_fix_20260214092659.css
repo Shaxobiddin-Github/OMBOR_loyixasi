@@ -1,0 +1,23 @@
+/* static/css/jazzmin_fix.css */
+
+/* filter_horizontal (ikki tomonlama ro'yxat) yozuvlarini qora qilish */
+.selector select {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+}
+
+.selector select option {
+    color: #000000 !important;
+}
+
+/* "Mavjud" va "Tanlangan" sarlavhalari rangi */
+.selector-available h2, .selector-chosen h2 {
+    color: #333333 !important;
+    background-color: #f8f9fa !important;
+}
+
+/* Qidiruv maydoni (poisk) ichidagi yozuvni qora qilish */
+.selector-filter input {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+}

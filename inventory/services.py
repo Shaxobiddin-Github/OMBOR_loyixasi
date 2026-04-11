@@ -40,10 +40,28 @@ class StockService:
             raise ValidationError("Xodim topilmadi")
         
         # Set face verification fields
-        movement.face_employee = employee
         movement.face_verified = True
         movement.face_confidence = confidence
         movement.face_verified_at = timezone.now()
+        movement.face_employee = employee  # Save the Actor
+
+        # Permission Check (Hierarchy)
+        # Agar harakat aniq bir xodimga (target_employee) tegishli bo'lsa,
+        # Face Verify qilgan odam (employee) shu xodimning o'zi yoki rahbari bo'lishi kerak.
+        if movement.target_employee:
+            # 1. Self check
+            if employee.id != movement.target_employee.id:
+                # 2. Supervisor check
+                if movement.target_employee.supervisor_id != employee.id:
+                    raise ValidationError(
+                        f"Ruxsat yo'q: {employee.name} {movement.target_employee.name} ning rahbari emas."
+                    )
+                # Auto-Remark for Delegation
+                delegation_note = f"Komandir {employee.name} -> xodim {movement.target_employee.name} uchun kirim"
+                if movement.note:
+                    movement.note = f"{delegation_note}. {movement.note}"
+                else:
+                    movement.note = delegation_note
         
         # Process each item with row-level lock
         items = movement.items.select_for_update().select_related('product')
@@ -163,3 +181,157 @@ class StockService:
             'low_stock_count': low_stock_count,
             'total_value': total_value,
         }
+
+
+class CheckoutService:
+    """
+    Toifa asosidagi chiqish (OUT) mantiqi.
+    
+    Mantiq zanjiri:
+    1. Face ID → actor (Employee) aniqlanadi
+    2. target_employee = actor YOKI boshqa xodim (komandir delegatsiya)
+    3. actor == target YOKI actor.is_commander → ruxsat
+    4. Standard: product.category in target.assigned_categories → OK
+    5. Emergency: target.assigned_categories dagi barcha stock>0 mahsulotlar → bulk OUT
+    """
+    
+    @staticmethod
+    def _resolve_permission(actor: Employee, target: Employee):
+        """
+        Ruxsatni tekshirish.
+        - actor == target → OK
+        - actor == target.supervisor → OK (Komandir o'z xodimi uchun)
+        - Aks holda → ValidationError
+        """
+        if actor.id == target.id:
+            return  # O'z narsasini olayapti
+        
+        # Check if actor is the supervisor of the target
+        if target.supervisor_id == actor.id:
+            return  # Komandir o'z xodimi nomidan olyapti
+            
+        raise ValidationError(
+            f"{actor.name} {target.name} ning rahbari (komandiri) emas."
+        )
+    
+    @staticmethod
+    @transaction.atomic
+    def standard_checkout(actor: Employee, target: Employee, product, quantity: int, user):
+        """
+        Standart rejim: QR scan → egalik tekshiruvi → Face ID.
+        
+        Args:
+            actor: Face ID orqali aniqlangan xodim.
+            target: Mahsulot egasi bo'lgan xodim (actor yoki boshqa).
+            product: QR skanerdan olingan Product instance.
+            quantity: Chiqariladigan miqdor.
+            user: Tizimga kirgan foydalanuvchi (Django User).
+        
+        Returns:
+            Movement instance.
+        """
+        # 1. Ruxsat tekshiruvi (Actor vs Target)
+        CheckoutService._resolve_permission(actor, target)
+        
+        # 2. Egalik tekshiruvi: Mahsulot target xodimga biriktirilganmi?
+        if product.assigned_to_id != target.id:
+            owner_name = product.assigned_to.name if product.assigned_to else "Hech kim"
+            raise ValidationError(
+                f"Bu mahsulot {target.name} ga biriktirilmagan. (Egasi: {owner_name})"
+            )
+        
+        # 3. Zaxira tekshiruvi
+        stock, _ = Stock.objects.select_for_update().get_or_create(
+            product=product, defaults={'current_qty': 0}
+        )
+        
+        # 4. Izoh tayyorlash
+        if actor.id != target.id:
+            note = f"Komandir {actor.name} → xodim {target.name} uchun chiqarish"
+        else:
+            note = "Standart chiqish"
+        
+        # 5. Movement yaratish
+        movement = Movement.objects.create(
+            movement_type='OUT',
+            status='VERIFIED',
+            performed_by=user,
+            face_employee=actor,
+            target_employee=target if actor.id != target.id else None,
+            face_verified=True,
+            face_confidence=1.0,
+            face_verified_at=timezone.now(),
+            is_emergency=False,
+            note=note,
+        )
+        
+        MovementItem.objects.create(
+            movement=movement,
+            product=product,
+            quantity=quantity,
+        )
+        
+        stock.current_qty -= quantity
+        stock.save()
+        
+        return movement
+    
+    @staticmethod
+    @transaction.atomic
+    def emergency_checkout(actor: Employee, target: Employee, user):
+        """
+        Ekstrenniy rejim: Face ID → barcha biriktirilgan mahsulotlar bulk OUT.
+        
+        Args:
+            actor: Face ID orqali aniqlangan xodim.
+            target: Mahsulot egasi (actor yoki boshqa xodim).
+            user: Tizimga kirgan foydalanuvchi.
+        
+        Returns:
+            Movement instance.
+        """
+        # 1. Ruxsat tekshiruvi
+        CheckoutService._resolve_permission(actor, target)
+        
+        # 2. Target ga biriktirilgan barcha stock > 0 mahsulotlarni topish
+        stocks = Stock.objects.select_for_update().filter(
+            product__assigned_to=target,
+            current_qty__gt=0
+        ).select_related('product')
+        
+        if not stocks.exists():
+            raise ValidationError(
+                f"{target.name} ga biriktirilgan mahsulotlar omborda qolmagan."
+            )
+        
+        # 3. Izoh
+        if actor.id != target.id:
+            note = f"EKSTRENNIY: Komandir {actor.name} → xodim {target.name} uchun barchasini chiqarish"
+        else:
+            note = "EKSTRENNIY: Barchasini chiqarish"
+        
+        # 4. Movement yaratish
+        movement = Movement.objects.create(
+            movement_type='OUT',
+            status='VERIFIED',
+            performed_by=user,
+            face_employee=actor,
+            target_employee=target if actor.id != target.id else None,
+            face_verified=True,
+            face_confidence=1.0,
+            face_verified_at=timezone.now(),
+            is_emergency=True,
+            note=note,
+        )
+        
+        # 5. Har bir mahsulotni chiqarish
+        for stock in stocks:
+            MovementItem.objects.create(
+                movement=movement,
+                product=stock.product,
+                quantity=stock.current_qty,
+            )
+            stock.current_qty = 0
+            stock.save()
+        
+        return movement

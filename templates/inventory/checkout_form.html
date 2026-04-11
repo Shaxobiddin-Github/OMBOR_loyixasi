@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+
+{% block title %}Chiqim — Ombor Nazorat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Checkout Layout ── */
+    .checkout-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+        .checkout-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .checkout-container .full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* ── Cards ── */
+    .co-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+    }
+
+    .co-card h3 {
+        margin: 0 0 16px;
+        font-size: 1.1em;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── Steps Indicator ── */
+    .steps-bar {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 24px;
+    }
+
+    .step-pill {
+        flex: 1;
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 8px;
+        font-size: 0.85em;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #94a3b8;
+        transition: all 0.3s ease;
+    }
+
+    .step-pill.active {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .step-pill.done {
+        background: #10b981;
+        color: #fff;
+    }
+
+    /* ── Face Section ── */
+    .face-section {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .face-section video {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        background: #000;
+    }
+
+    .face-info {
+        flex: 1;
+    }
+
+    .face-status {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-weight: 500;
+    }
+
+    .face-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+    }
+
+    .face-status.verified {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+    }
+
+    /* ── Employee Info Card ── */
+    .employee-badge {
+        display: none;
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #86efac;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+    }
+
+    .employee-badge.visible {
+        display: block;
+    }
+
+    .employee-badge .emp-name {
+        font-size: 1.2em;
+        font-weight: 700;
+        color: #166534;
+        margin-bottom: 4px;
+    }
+
+    .employee-badge .emp-meta {
+        font-size: 0.85em;
+        color: #15803d;
+    }
+
+    .commander-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.75em;
+        font-weight: 700;
+        margin-left: 8px;
+    }
+
+    .category-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .cat-tag {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 500;
+    }
+
+    /* ── Target Employee Select ── */
+    .target-section {
+        display: none;
+        margin-top: 16px;
+        padding: 16px;
+        background: #fefce8;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+    }
+
+    .target-section.visible {
+        display: block;
+    }
+
+    .target-section select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95em;
+        margin-top: 8px;
+        color: #1e293b;
+        background: #fff;
+    }
+
+    /* ── QR Scanner ── */
+    .qr-input {
+        width: 100%;
+        padding: 14px 18px;
+        font-size: 1.1em;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+        color: #1e293b;
+    }
+
+    .qr-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .qr-input:disabled {
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+
+    /* ── Mode Buttons ── */
+    .mode-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .btn-emergency {
+        width: 100%;
+        padding: 16px;
+        font-size: 1.1em;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-emergency:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-emergency:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* ── Results Table ── */
+    .results-section {
+        display: none;
+    }
+
+    .results-section.visible {
+        display: block;
+    }
+
+    .result-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9em;
+    }
+
+    .result-table thead th {
+        background: #f8fafc;
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .result-table tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+
+    .result-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    /* ── Toast Messages ── */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .toast.success {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .toast.error {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .toast.hidden {
+        display: none;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* ── Disabled overlay ── */
+    .locked-overlay {
+        position: relative;
+    }
+
+    .locked-overlay.locked::after {
+        content: '🔒 Avval Face ID tasdiqlang';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 12px;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📤 Chiqim (Checkout)</h1>
+</div>
+
+<!-- Steps Bar -->
+<div class="steps-bar">
+    <div class="step-pill active" id="step-1">1. Face ID</div>
+    <div class="step-pill" id="step-2">2. QR Scan / Emergency</div>
+    <div class="step-pill" id="step-3">3. Natija</div>
+</div>
+
+<div class="checkout-container">
+    <!-- Pending Movement Warning -->
+    {% if pending_movement %}
+    <div class="full-width">
+        <div class="co-card" style="border-left: 5px solid #ffc107; background: #fffbeb;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color: #b45309; margin-bottom: 5px;">⚠️ Yakunlanmagan chiqim (#{{ pending_movement.id }})
+                    </h3>
+                    <p style="margin: 0; color: #92400e;">
+                        Sizda chala qolgan chiqim operatsiyasi mavjud. Uni davom ettiring yoki o'chirib tashlang.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="document.getElementById('qr-input').focus()" class="btn btn-primary"
+                        style="background: #d97706; border-color: #d97706;">
+                        ⬇️ Davom ettirish
+                    </button>
+
+                    <form action="{% url 'discard_pending_movement' %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="movement_type" value="OUT">
+                        <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Rostdan ham barchasini o\'chirib tashlaysizmi?')">
+                            🗑️ MAJBURIY TOZALASH
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if pending_movement.items.exists %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #fcd34d;">
+                <strong>Qo'shilgan mahsulotlar:</strong>
+                <ul style="margin: 5px 0 0 20px; color: #78350f;">
+                    {% for item in pending_movement.items.all %}
+                    <li>{{ item.product.name }} ({{ item.quantity }} {{ item.product.unit }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══ LEFT: Face ID ═══ -->
+    <div class="co-card">
+        <h3>👤 Face ID tasdiqlash</h3>
+        <div class="face-section">
+            <video id="video" width="240" height="180" autoplay></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="face-info">
+                <div id="face-status" class="face-status pending">
+                    ❌ Face tasdiqlanmagan
+                </div>
+                <button type="button" id="capture-btn" class="btn btn-primary" style="width:100%;padding:10px;">
+                    📸 Tasdiqlash
+                </button>
+
+                <!-- Employee Badge (shown after verification) -->
+                <div id="employee-badge" class="employee-badge">
+                    <div class="emp-name" id="emp-name"></div>
+                    <div class="emp-meta" id="emp-meta"></div>
+                    <div class="category-tags" id="emp-categories"></div>
+                </div>
+
+                <!-- Commander: target employee select -->
+                <div id="target-section" class="target-section">
+                    <label style="font-weight:600;color:#92400e;">
+                        ⭐ Komandir rejimi — boshqa xodim uchun chiqarish:
+                    </label>
+                    <select id="target-select">
+                        <option value="">— O'zim uchun —</option>
+                    </select>
+                    <div id="target-categories" class="category-tags" style="margin-top:8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT: Scanner + Emergency ═══ -->
+    <div class="co-card locked-overlay locked" id="scanner-card">
+        <h3>📱 QR Scan / Chiqarish</h3>
+
+        <div
+            style="display:flex;gap:16px;align-items:center;background:#f8fafc;padding:10px 14px;border-radius:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <label
+                style="cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600;color:#1e293b;user-select:none;">
+                <input type="checkbox" id="turbo-mode"> ⚡ Turbo
+            </label>
+            <div style="height:18px;width:1px;background:#cbd5e1;"></div>
+            <label
+                style="cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600;color:#1e293b;user-select:none;">
+                <input type="checkbox" id="sound-mode" checked> 🔊 Ovoz
+            </label>
+        </div>
+
+        <input type="text" id="qr-input" class="qr-input" placeholder="QR skanerlang yoki yozing..." disabled>
+
+        <div class="mode-buttons">
+            <button type="button" id="emergency-btn" class="btn-emergency" disabled>
+                🚨 BARCHA TOIFADAGI MAHSULOTLARNI CHIQARISH
+            </button>
+        </div>
+
+        <div id="scan-status" style="margin-top:12px;min-height:24px;font-size:0.9em;color:#64748b;"></div>
+    </div>
+
+    <!-- ═══ RESULTS TABLE (full width) ═══ -->
+    <div class="co-card full-width results-section" id="results-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>📋 Chiqariladigan mahsulotlar</h3>
+            <span id="items-count-badge"
+                style="background:#e2e8f0; padding:4px 10px; border-radius:12px; font-weight:600; font-size:0.9em;">0
+                dona</span>
+        </div>
+
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Mahsulot</th>
+                    <th>SKU</th>
+                    <th>Miqdor</th>
+                </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+
+        <!-- Actions -->
+        <div class="checkout-actions" style="margin-top:24px; display:flex; gap:16px; justify-content:flex-end;">
+            <button type="button" id="cancel-btn" class="btn btn-danger" style="padding:12px 24px; display:none;">
+                ❌ Bekor qilish
+            </button>
+            <button type="button" id="finalize-btn" class="btn btn-success"
+                style="padding:12px 32px; font-weight:bold; font-size:1.1em; display:none;">
+                ✅ YAKUNLASH
+            </button>
+        </div>
+        <div id="results-summary"
+            style="margin-top:12px;padding:12px;background:#f0fdf4;border-radius:8px;font-weight:600;color:#166534;">
+        </div>
+    </div>
+</div>
+
+<!-- Quantity Modal -->
+<div id="qty-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Miqdorni kiriting</h3>
+        <div class="modal-body">
+            <div id="modal-product-info"></div>
+            <div class="form-group">
+                <label for="qty-input">Miqdor</label>
+                <input type="number" id="qty-input" min="1" value="1">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="modal-cancel" class="btn btn-secondary">Bekor</button>
+            <button type="button" id="modal-confirm" class="btn btn-primary">Chiqarish</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toasts -->
+<div id="toast-success" class="toast success hidden"></div>
+<div id="toast-error" class="toast error hidden"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CONFIG = {
+        movementType: 'OUT',
+        csrfToken: '{{ csrf_token }}',
+        urls: {
+            faceVerify: '{% url "face_verify" %}',
+            faceStatus: '{% url "face_status" %}',
+            productByBarcode: '{% url "product_by_barcode" %}',
+            checkoutStandard: '{% url "checkout_standard" %}',
+            checkoutEmergency: '{% url "checkout_emergency" %}',
+            createMovement: '{% url "create_movement" %}',
+            addItem: '/movement/{id}/add-item/',
+            removeItem: '/movement/{id}/remove-item/{item_id}/',
+            finalize: '/movement/{id}/finalize/',
+            cancel: '/movement/{id}/cancel/',
+            bulkOutAll: '{% url "bulk_out_all_stock" %}'
+        },
+        employees: {{ employees_json|safe }},
+        userEmployeeId: {{ user_employee_id|default:"null" }},
+        pendingMovementId: {% if pending_movement %}{{ pending_movement.id }}{% else %}null{% endif %},
+        pendingItems: {{ pending_items_json|safe|default:"[]" }}
+       };
+</script>
+<script src="/static/js/checkout.js?v=1.2"></script>
+{% endblock %}

@@ -101,7 +101,9 @@ class ReportService:
         excel_data = []
         for s in stocks:
             excel_data.append([
+                s.product.id,
                 s.product.sku,
+                s.product.barcode,
                 s.product.name,
                 s.product.category.name,
                 s.product.unit,
@@ -126,20 +128,20 @@ class ReportService:
         movements = Movement.objects.filter(
             created_at__range=[start_date, end_date],
             status='VERIFIED'
-        ).select_related('performed_by', 'face_employee').prefetch_related('items__product')
+        ).select_related('performed_by', 'face_employee', 'target_employee').prefetch_related('items__product')
 
         if movement_type and movement_type != 'ALL':
             movements = movements.filter(movement_type=movement_type)
 
         excel_data = []
         for m in movements:
-            items_str = ", ".join([f"{item.product.name} ({item.quantity})" for item in m.items.all()])
+            items_str = ", ".join([f"{item.product.name} [ID:{item.product.id}|{item.product.barcode}] ({item.quantity})" for item in m.items.all()])
             excel_data.append([
                 m.id,
                 m.get_movement_type_display(),
                 m.created_at.strftime("%Y-%m-%d %H:%M"),
                 m.performed_by.username,
-                m.face_employee.name if m.face_employee else "-",
+                m.target_employee.name if m.target_employee else (m.face_employee.name if m.face_employee else "-"),
                 items_str,
                 m.note
             ])

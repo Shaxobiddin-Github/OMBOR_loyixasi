@@ -1,3 +1,5 @@
+
+
 """
 Django settings for Ombor Nazorat project.
 Local warehouse management system.
@@ -5,15 +7,18 @@ Local warehouse management system.
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ombor-nazorat-change-this-in-production-!@#$%^&*()'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']  # vaqtincha (demo uchun)
 
@@ -34,6 +39,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,22 +68,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - PostgreSQL
+# ============================================
+# Database - SQLite (O'ZGARTIRILDI)
+# ============================================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ombor_nazorat',
-        'USER': 'postgres',
-        'PASSWORD': '96970204',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'ombor_db',            # Baza nomi (bat faylda shu nomda yaratamiz)
+#         'USER': 'postgres',            # Standart foydalanuvchi
+#         'PASSWORD': 'admin_password',  # Bat faylda va Inno Setupda bergan parolimiz
+#         'HOST': '127.0.0.1',           # Localhost
+#         'PORT': '5432',                # PostgreSQL standart porti
 #     }
 # }
 
@@ -98,10 +106,16 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
+# ============================================
 # Static files (CSS, JavaScript, Images)
+# ============================================
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise uchun eng muhim sozlama (Siqish va Kesh):
+# Bu qator bo'lmasa, dizayn buzilib ketishi mumkin.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
@@ -126,8 +140,10 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Face verification timeout (seconds) - 5 minutes
 FACE_VERIFICATION_TIMEOUT = 300
 
-# Backup settings - Windows PostgreSQL path
-PG_DUMP_PATH = r"D:\Postgres\bin\pg_dump.exe"
+# Backup settings
+# ESLATMA: SQLite ishlatayotganingiz uchun pg_dump ishlamaydi.
+# Backup qilish uchun shunchaki 'db.sqlite3' faylini nusxalash yetarli.
+PG_DUMP_PATH = None 
 
 # Pagination
 DEFAULT_PAGE_SIZE = 50

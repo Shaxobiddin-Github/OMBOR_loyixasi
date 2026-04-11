@@ -23,6 +23,23 @@
 
             <dt>Holat</dt>
             <dd>{% if employee.is_active %}Faol{% else %}Nofaol{% endif %}</dd>
+
+            <dt>Rahbar (Supervisor)</dt>
+            <dd>{{ employee.supervisor.name|default:"-" }}</dd>
+
+            <dt>Rol</dt>
+            <dd>{% if employee.is_commander %}Komandir (Rahbar){% else %}Xodim{% endif %}</dd>
+
+            {% if employee.is_commander %}
+            <dt>Qo'l ostidagilar</dt>
+            <dd>
+                {% for sub in employee.subordinates.all %}
+                <span class="badge badge-info">{{ sub.name }}</span>
+                {% empty %}
+                -
+                {% endfor %}
+            </dd>
+            {% endif %}
         </dl>
     </div>
 
@@ -63,6 +80,7 @@
 
     let video, canvas, ctx;
     let capturedImages = [];
+    let cameraStream = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         video = document.getElementById('video');
@@ -73,6 +91,7 @@
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
+                cameraStream = stream;
             })
             .catch(err => {
                 console.error('Kamera xatosi:', err);
@@ -88,6 +107,14 @@
 
         // Register
         document.getElementById('register-btn').addEventListener('click', registerFace);
+    });
+
+    // Sahifa tark etilganda kamerani to'xtatish
+    window.addEventListener('beforeunload', () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
     });
 
     function captureFrame() {
